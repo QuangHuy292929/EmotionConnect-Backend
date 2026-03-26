@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Infracstructure.Persistence;
+using Infracstructure.Repositories;
 using Infracstructure.Security;
 using Infracstructure.Services;
 using Microsoft.AspNetCore.Identity;
@@ -29,6 +30,8 @@ public static class DependencyInjection
 
         services.AddScoped<PasswordHasher<Domain.Entities.User>>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IAuthRepository, AuthRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAuthService, AuthService>();
 
         return services;

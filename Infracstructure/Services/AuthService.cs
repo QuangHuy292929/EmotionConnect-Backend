@@ -1,25 +1,23 @@
 using Application.DTOs.Auth;
 using Application.Interfaces;
 using Domain.Entities;
-using Infracstructure.Persistence;
 using Infracstructure.Security;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Infracstructure.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly PasswordHasher<User> _passwordHasher;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
     public AuthService(
-        ApplicationDbContext dbContext,
+        IUnitOfWork unitOfWork,
         PasswordHasher<User> passwordHasher,
         IJwtTokenGenerator jwtTokenGenerator)
     {
-        _dbContext = dbContext;
+        _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
         _jwtTokenGenerator = jwtTokenGenerator;
     }
@@ -29,18 +27,12 @@ public class AuthService : IAuthService
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var normalizedUsername = request.Username.Trim().ToLowerInvariant();
 
-        var emailExists = await _dbContext.Users
-            .AnyAsync(x => x.Email.ToLower() == normalizedEmail, cancellationToken);
-
-        if (emailExists)
+        if (await _unitOfWork.AuthRepository.EmailExistsAsync(normalizedEmail, cancellationToken))
         {
             throw new InvalidOperationException("Email is already in use.");
         }
 
-        var usernameExists = await _dbContext.Users
-            .AnyAsync(x => x.Username.ToLower() == normalizedUsername, cancellationToken);
-
-        if (usernameExists)
+        if (await _unitOfWork.AuthRepository.UsernameExistsAsync(normalizedUsername, cancellationToken))
         {
             throw new InvalidOperationException("Username is already in use.");
         }
@@ -54,8 +46,8 @@ public class AuthService : IAuthService
 
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
-        _dbContext.Users.Add(user);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.AuthRepository.AddAsync(user, cancellationToken);
+        await _unitOfWork.SaveChangeAsync(cancellationToken);
 
         return BuildAuthResponse(user);
     }
@@ -64,10 +56,7 @@ public class AuthService : IAuthService
     {
         var identifier = request.EmailOrUsername.Trim().ToLowerInvariant();
 
-        var user = await _dbContext.Users
-            .FirstOrDefaultAsync(
-                x => x.Email.ToLower() == identifier || x.Username.ToLower() == identifier,
-                cancellationToken);
+        var user = await _unitOfWork.AuthRepository.GetByEmailOrUsernameAsync(identifier, cancellationToken);
 
         if (user is null)
         {
@@ -85,16 +74,7 @@ public class AuthService : IAuthService
 
     public async Task<UserSummaryDto?> GetCurrentUserAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Users
-            .Where(x => x.Id == userId)
-            .Select(x => new UserSummaryDto
-            {
-                Id = x.Id,
-                Username = x.Username,
-                Email = x.Email,
-                DisplayName = x.DisplayName
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+        return await _unitOfWork.AuthRepository.GetCurrentUserAsync(userId, cancellationToken);
     }
 
     private AuthResponse BuildAuthResponse(User user)
