@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Application.DTOs.Community
+namespace Application.DTOs.Matching
 {
-    public class CommunityDto
+    public class MatchingCandidateDto
     {
-
     }
 }

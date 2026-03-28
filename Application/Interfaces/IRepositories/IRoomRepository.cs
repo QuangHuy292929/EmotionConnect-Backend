@@ -1,0 +1,19 @@
+﻿using Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Application.Interfaces.IRepositories
+{
+    public interface IRoomRepository
+    {
+        Task<Room?> GetByIdAsync(Guid roomId, CancellationToken ct = default);
+        Task<List<Room>> GetByCommunityIdAsync(Guid communityId, CancellationToken ct = default);
+        Task<List<Room>> GetByUserIdAync(Guid userId, CancellationToken ct = default);
+        Task<bool> IsUserInRoomAsync(Guid roomId, Guid userId, CancellationToken ct = default);
+        Task<RoomMember?> GetRoomMemberAsync(Guid roomId, CancellationToken ct = default);
+        Task AddAsync(Room room, CancellationToken ct = default);
+        Task AddMemberAsync(RoomMember roomMember, CancellationToken ct = default);
+
+    }
+}

@@ -1,5 +1,6 @@
 using Application.DTOs.Auth;
 using Application.Interfaces;
+using Application.Interfaces.IServices;
 using Domain.Entities;
 using Infracstructure.Security;
 using Microsoft.AspNetCore.Identity;

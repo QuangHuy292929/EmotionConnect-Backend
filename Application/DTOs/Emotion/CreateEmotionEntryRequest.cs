@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Application.Interfaces
+namespace Application.DTOs.Emotion
 {
-    public interface IRoomService
+    public class CreateEmotionEntryRequest
     {
-
     }
 }

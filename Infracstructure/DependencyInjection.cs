@@ -1,4 +1,6 @@
 using Application.Interfaces;
+using Application.Interfaces.IRepositories;
+using Application.Interfaces.IServices;
 using Infracstructure.Persistence;
 using Infracstructure.Repositories;
 using Infracstructure.Security;

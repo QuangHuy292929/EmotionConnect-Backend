@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Application.DTOs.Community
+namespace Application.DTOs.AI
 {
-    public class CommunityDto
+    public class AnalyzeResponseDto
     {
-
     }
 }

@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Interfaces.IRepositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infracstructure.Persistence;

@@ -1,5 +1,5 @@
 using Application.DTOs.Auth;
-using Application.Interfaces;
+using Application.Interfaces.IRepositories;
 using Domain.Entities;
 using Infracstructure.Persistence;
 using Microsoft.EntityFrameworkCore;
