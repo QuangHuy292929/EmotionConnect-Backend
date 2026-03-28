@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+namespace Application.DTOs.AI;
 
-namespace Application.DTOs.AI
+public class EmbeddingResponseDto
 {
-    public class EmbeddingResponseDto
-    {
-    }
+    public string Text { get; set; } = string.Empty;
+    public IReadOnlyList<float> Vector { get; set; } = Array.Empty<float>();
 }

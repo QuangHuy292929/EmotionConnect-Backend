@@ -10,13 +10,33 @@ public class UnitOfWork : IUnitOfWork
     private IDbContextTransaction? _transaction;
     private bool _disposed;
 
-    public UnitOfWork(ApplicationDbContext dbContext, IAuthRepository authRepository)
+    public UnitOfWork(
+        ApplicationDbContext dbContext,
+        IAuthRepository authRepository,
+        IRoomRepository roomRepository,
+        ICommunityRepository communityRepository,
+        IMatchingRepository matchingRepository,
+        IMessageRepository messageRepository,
+        IReflectionRepository reflectionRepository,
+        IEmotionRepository emotionRepository)
     {
         _dbContext = dbContext;
         AuthRepository = authRepository;
+        RoomRepository = roomRepository;
+        CommunityRepository = communityRepository;
+        MatchingRepository = matchingRepository;
+        MessageRepository = messageRepository;
+        ReflectionRepository = reflectionRepository;
+        EmotionRepository = emotionRepository;
     }
 
     public IAuthRepository AuthRepository { get; }
+    public IRoomRepository RoomRepository { get; }
+    public ICommunityRepository CommunityRepository { get; }
+    public IMatchingRepository MatchingRepository { get; }
+    public IMessageRepository MessageRepository { get; }
+    public IReflectionRepository ReflectionRepository { get; }
+    public IEmotionRepository EmotionRepository { get; }
 
     public Task<int> SaveChangeAsync(CancellationToken ct = default)
     {

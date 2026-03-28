@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+namespace Application.DTOs.Matching;
 
-namespace Application.DTOs.Matching
+public class MatchingResultDto
 {
-    public class MatchingResultDto
-    {
-    }
+    public Guid MatchingRequestId { get; set; }
+    public Guid EmotionEntryId { get; set; }
+    public List<MatchingCandidateDto> Candidates { get; set; } = new();
 }

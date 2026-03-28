@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+namespace Application.DTOs.Room;
 
-namespace Application.DTOs.Room
+public class CreateRoomRequest
 {
-    public class CreateRoomRequest
-    {
-    }
+    public Guid? CommunityId { get; set; }
+    public string? Name { get; set; }
+    public string RoomType { get; set; } = string.Empty;
+    public int MaxMembers { get; set; } = 5;
 }
