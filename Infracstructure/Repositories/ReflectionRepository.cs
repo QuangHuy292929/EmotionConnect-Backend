@@ -14,14 +14,14 @@ public class ReflectionRepository : IReflectionRepository
         _dbContext = dbContext;
     }
 
-    public Task AddAsync(Reflection reflection, CancellationToken cancellationToken = default)
+    public async Task AddAsync(Reflection reflection, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Reflections.AddAsync(reflection, cancellationToken).AsTask();
+        await _dbContext.Reflections.AddAsync(reflection, cancellationToken);
     }
 
-    public Task<List<Reflection>> GetByRoomIdAsync(Guid roomId, CancellationToken cancellationToken = default)
+    public async Task<List<Reflection>> GetByRoomIdAsync(Guid roomId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Reflections
+        return await _dbContext.Reflections
             .Include(x => x.User)
             .Include(x => x.EmotionEntry)
             .Where(x => x.RoomId == roomId)
@@ -29,9 +29,9 @@ public class ReflectionRepository : IReflectionRepository
             .ToListAsync(cancellationToken);
     }
 
-    public Task<List<Reflection>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<List<Reflection>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Reflections
+        return await _dbContext.Reflections
             .Include(x => x.Room)
             .Include(x => x.EmotionEntry)
             .Where(x => x.UserId == userId)

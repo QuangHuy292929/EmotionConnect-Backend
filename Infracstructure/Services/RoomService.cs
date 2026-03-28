@@ -1,47 +1,150 @@
-﻿using Application.DTOs.Room;
+using Application.DTOs.Room;
 using Application.Interfaces;
 using Application.Interfaces.IServices;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Domain.Entities;
+using Domain.Enums;
+using Infracstructure.Extensions;
+using Infracstructure.Mappers;
 
-namespace Infracstructure.Services
+namespace Infracstructure.Services;
+
+public class RoomService : IRoomService
 {
-    public class RoomService : IRoomService
+    private readonly IUnitOfWork _unitOfWork;
+
+    public RoomService(IUnitOfWork unitOfWork)
     {
-        private readonly IUnitOfWork _unitOfWork;
-        public RoomService(IUnitOfWork unitOfWork)
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<RoomDto> CreateAsync(CreateRoomRequest request, Guid createByUserId, CancellationToken ct = default)
+    {
+        if (request is null)
         {
-            _unitOfWork = unitOfWork;
-        }
-        public Task<RoomDto> CreateAsync(CreateRoomRequest request, Guid createByUserId, CancellationToken ct = default)
-        {
-            throw new NotImplementedException();
+            throw new ArgumentNullException(nameof(request));
         }
 
-        public Task<List<RoomDto>> GetByCommunityAsync(Guid coomunityId, CancellationToken ct = default)
+        if (createByUserId == Guid.Empty)
         {
-            throw new NotImplementedException();
+            throw new ArgumentException("CreateByUserId is required.", nameof(createByUserId));
         }
 
-        public Task<RoomDto?> GetByIdAsync(Guid roomId, CancellationToken ct = default)
+        if (request.MaxMembers <= 0)
         {
-            throw new NotImplementedException();
+            throw new ArgumentException("MaxMembers must be greater than 0.", nameof(request.MaxMembers));
         }
 
-        public Task<List<RoomDto>> GetMyRoomsAsync(Guid userId, CancellationToken cancellationToken = default)
+        if (!request.RoomType.TryToEnum(out RoomType roomType))
         {
-            throw new NotImplementedException();
+            throw new ArgumentException($"RoomType '{request.RoomType}' is invalid.", nameof(request.RoomType));
         }
 
-        public Task JoinRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default)
+        var room = new Room
         {
-            throw new NotImplementedException();
+            Name = string.IsNullOrWhiteSpace(request.Name) ? null : request.Name.Trim(),
+            CommunityId = request.CommunityId,
+            CreatedById = createByUserId,
+            MaxMembers = request.MaxMembers,
+            RoomType = roomType,
+            Status = RoomStatus.Open
+        };
+
+        await _unitOfWork.RoomRepository.AddAsync(room, ct);
+
+        var creatorMember = new RoomMember
+        {
+            RoomId = room.Id,
+            UserId = createByUserId
+        };
+
+        await _unitOfWork.RoomRepository.AddMemberAsync(creatorMember, ct);
+        await _unitOfWork.SaveChangeAsync(ct);
+
+        var createdRoom = await _unitOfWork.RoomRepository.GetByIdAsync(room.Id, ct);
+        return (createdRoom ?? room).ToDto();
+    }
+
+    public async Task<List<RoomDto>> GetByCommunityAsync(Guid coomunityId, CancellationToken ct = default)
+    {
+        if (coomunityId == Guid.Empty)
+        {
+            throw new ArgumentException("CommunityId is required.", nameof(coomunityId));
         }
 
-        public Task LeaveRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default)
+        var rooms = await _unitOfWork.RoomRepository.GetByCommunityIdAsync(coomunityId, ct);
+        return rooms.ToDtoList();
+    }
+
+    public async Task<RoomDto?> GetByIdAsync(Guid roomId, CancellationToken ct = default)
+    {
+        if (roomId == Guid.Empty)
         {
-            throw new NotImplementedException();
+            throw new ArgumentException("RoomId is required.", nameof(roomId));
         }
+
+        var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId, ct);
+        return room?.ToDto();
+    }
+
+    public async Task<List<RoomDto>> GetMyRoomsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        if (userId == Guid.Empty)
+        {
+            throw new ArgumentException("UserId is required.", nameof(userId));
+        }
+
+        var rooms = await _unitOfWork.RoomRepository.GetByUserIdAync(userId, cancellationToken);
+        return rooms.ToDtoList();
+    }
+
+    public async Task JoinRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId, cancellationToken);
+        if (room is null)
+        {
+            throw new KeyNotFoundException("Room not found.");
+        }
+
+        var alreadyInRoom = await _unitOfWork.RoomRepository.IsUserInRoomAsync(roomId, userId, cancellationToken);
+        if (alreadyInRoom)
+        {
+            return;
+        }
+
+        if (room.Members.Count >= room.MaxMembers)
+        {
+            throw new InvalidOperationException("Room is full.");
+        }
+
+        var member = new RoomMember
+        {
+            RoomId = roomId,
+            UserId = userId
+        };
+
+        await _unitOfWork.RoomRepository.AddMemberAsync(member, cancellationToken);
+        await _unitOfWork.SaveChangeAsync(cancellationToken);
+    }
+
+    public async Task LeaveRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        if (roomId == Guid.Empty)
+        {
+            throw new ArgumentException("RoomId is required.", nameof(roomId));
+        }
+
+        if (userId == Guid.Empty)
+        {
+            throw new ArgumentException("UserId is required.", nameof(userId));
+        }
+
+        var member = await _unitOfWork.RoomRepository.GetRoomMemberAsync(roomId, userId, cancellationToken);
+        if (member is null)
+        {
+            return;
+        }
+
+        await _unitOfWork.RoomRepository.RemoveMemberAsync(member, cancellationToken);
+        await _unitOfWork.SaveChangeAsync(cancellationToken);
     }
 }

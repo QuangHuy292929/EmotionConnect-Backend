@@ -14,26 +14,26 @@ public class MatchingRepository : IMatchingRepository
         _dbContext = dbContext;
     }
 
-    public Task AddRequestAsync(MatchingRequest request, CancellationToken cancellationToken = default)
+    public async Task AddRequestAsync(MatchingRequest request, CancellationToken cancellationToken = default)
     {
-        return _dbContext.MatchingRequests.AddAsync(request, cancellationToken).AsTask();
+        await _dbContext.MatchingRequests.AddAsync(request, cancellationToken);
     }
 
-    public Task AddCandidatesAsync(IEnumerable<MatchingCandidate> candidates, CancellationToken cancellationToken = default)
+    public async Task AddCandidatesAsync(IEnumerable<MatchingCandidate> candidates, CancellationToken cancellationToken = default)
     {
-        return _dbContext.MatchingCandidates.AddRangeAsync(candidates, cancellationToken);
+        await _dbContext.MatchingCandidates.AddRangeAsync(candidates, cancellationToken);
     }
 
-    public Task<MatchingRequest?> GetRequestByIdAsync(Guid matchingRequestId, CancellationToken cancellationToken = default)
+    public async Task<MatchingRequest?> GetRequestByIdAsync(Guid matchingRequestId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.MatchingRequests
+        return await _dbContext.MatchingRequests
             .Include(x => x.Candidates)
             .FirstOrDefaultAsync(x => x.Id == matchingRequestId, cancellationToken);
     }
 
-    public Task<List<MatchingCandidate>> GetCandidatesAsync(Guid matchingRequestId, CancellationToken cancellationToken = default)
+    public async Task<List<MatchingCandidate>> GetCandidatesAsync(Guid matchingRequestId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.MatchingCandidates
+        return await _dbContext.MatchingCandidates
             .Include(x => x.CandidateUser)
             .Include(x => x.CandidateRoom)
             .Where(x => x.MatchingRequestId == matchingRequestId)

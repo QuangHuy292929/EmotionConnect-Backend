@@ -1,44 +1,71 @@
-﻿using Application.DTOs.Community;
+using Application.DTOs.Community;
 using Application.Interfaces;
 using Application.Interfaces.IServices;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Domain.Entities;
+using Infracstructure.Mappers;
 
-namespace Infracstructure.Services
+namespace Infracstructure.Services;
+
+public class CommunityService : ICommunityService
 {
-    public class CommunityService : ICommunityService
+    private readonly IUnitOfWork _unitOfWork;
+
+    public CommunityService(IUnitOfWork unitOfWork)
     {
-        private readonly IUnitOfWork _unitOfWork;
+        _unitOfWork = unitOfWork;
+    }
 
-        public CommunityService(IUnitOfWork unitOfWork)
+    public async Task<List<CommunityDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var communities = await _unitOfWork.CommunityRepository.GetAllAsync(cancellationToken);
+        return communities.ToDtoList();
+    }
+
+    public async Task<CommunityDto?> GetByIdAsync(Guid communityId, CancellationToken cancellationToken = default)
+    {
+        var community = await _unitOfWork.CommunityRepository.GetByIdAsync(communityId, cancellationToken);
+        return community?.ToDto();
+    }
+
+    public async Task<List<CommunityDto>> GetJoinedCommunitiesAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var communities = await _unitOfWork.CommunityRepository.GetJoinedCommunitiesAsync(userId, cancellationToken);
+        return communities.ToDtoList();
+    }
+
+    public async Task JoinAsync(Guid communityId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var community = await _unitOfWork.CommunityRepository.GetByIdAsync(communityId, cancellationToken);
+        if (community is null)
         {
-            _unitOfWork = unitOfWork;
+            throw new KeyNotFoundException("Community not found.");
         }
 
-        public Task<List<CommunityDto>> GetAllAsync(CancellationToken cancellationToken = default)
+        var alreadyJoined = await _unitOfWork.CommunityRepository.IsUserJoinedAsync(communityId, userId, cancellationToken);
+        if (alreadyJoined)
         {
-            throw new NotImplementedException();
+            return;
         }
 
-        public Task<CommunityDto?> GetByIdAsync(Guid communityId, CancellationToken cancellationToken = default)
+        var member = new CommunityMember
         {
-            throw new NotImplementedException();
+            CommunityId = communityId,
+            UserId = userId
+        };
+
+        await _unitOfWork.CommunityRepository.AddMemberAsync(member, cancellationToken);
+        await _unitOfWork.SaveChangeAsync(cancellationToken);
+    }
+
+    public async Task LeaveAsync(Guid communityId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var member = await _unitOfWork.CommunityRepository.GetMemberAsync(communityId, userId, cancellationToken);
+        if (member is null)
+        {
+            return;
         }
 
-        public Task<List<CommunityDto>> GetJoinedCommunitiesAsync(Guid userId, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task JoinAsync(Guid communityId, Guid userId, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task LeaveAsync(Guid communityId, Guid userId, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+        await _unitOfWork.CommunityRepository.RemoveMemberAsync(member);
+        await _unitOfWork.SaveChangeAsync(cancellationToken);
     }
 }

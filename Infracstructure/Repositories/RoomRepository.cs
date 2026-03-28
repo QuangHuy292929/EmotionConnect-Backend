@@ -14,17 +14,17 @@ public class RoomRepository : IRoomRepository
         _dbContext = dbContext;
     }
 
-    public Task<Room?> GetByIdAsync(Guid roomId, CancellationToken ct = default)
+    public async Task<Room?> GetByIdAsync(Guid roomId, CancellationToken ct = default)
     {
-        return _dbContext.Rooms
+         return await _dbContext.Rooms
             .Include(x => x.Community)
             .Include(x => x.Members)
             .FirstOrDefaultAsync(x => x.Id == roomId, ct);
     }
 
-    public Task<List<Room>> GetByCommunityIdAsync(Guid communityId, CancellationToken ct = default)
+    public async Task<List<Room>> GetByCommunityIdAsync(Guid communityId, CancellationToken ct = default)
     {
-        return _dbContext.Rooms
+        return await _dbContext.Rooms
             .Include(x => x.Community)
             .Include(x => x.Members)
             .Where(x => x.CommunityId == communityId)
@@ -32,9 +32,9 @@ public class RoomRepository : IRoomRepository
             .ToListAsync(ct);
     }
 
-    public Task<List<Room>> GetByUserIdAync(Guid userId, CancellationToken ct = default)
+    public async Task<List<Room>> GetByUserIdAync(Guid userId, CancellationToken ct = default)
     {
-        return _dbContext.RoomMembers
+        return await _dbContext.RoomMembers
             .Include(x => x.Room)
                 .ThenInclude(x => x!.Community)
             .Include(x => x.Room)
@@ -46,27 +46,32 @@ public class RoomRepository : IRoomRepository
             .ToListAsync(ct);
     }
 
-    public Task<bool> IsUserInRoomAsync(Guid roomId, Guid userId, CancellationToken ct = default)
+    public async Task<bool> IsUserInRoomAsync(Guid roomId, Guid userId, CancellationToken ct = default)
     {
-        return _dbContext.RoomMembers
+        return await _dbContext.RoomMembers
             .AnyAsync(x => x.RoomId == roomId && x.UserId == userId, ct);
     }
 
-    public Task<RoomMember?> GetRoomMemberAsync(Guid roomId, CancellationToken ct = default)
+    public async Task<RoomMember?> GetRoomMemberAsync(Guid roomId, Guid userId, CancellationToken ct = default)
     {
-        return _dbContext.RoomMembers
-            .Where(x => x.RoomId == roomId)
-            .OrderBy(x => x.JoinedAt)
+        return await _dbContext.RoomMembers
+            .Where(x => x.RoomId == roomId && x.UserId == userId)
             .FirstOrDefaultAsync(ct);
     }
 
-    public Task AddAsync(Room room, CancellationToken ct = default)
+    public async Task AddAsync(Room room, CancellationToken ct = default)
     {
-        return _dbContext.Rooms.AddAsync(room, ct).AsTask();
+        await _dbContext.Rooms.AddAsync(room, ct);
     }
 
-    public Task AddMemberAsync(RoomMember roomMember, CancellationToken ct = default)
+    public async Task AddMemberAsync(RoomMember roomMember, CancellationToken ct = default)
     {
-        return _dbContext.RoomMembers.AddAsync(roomMember, ct).AsTask();
+        await _dbContext.RoomMembers.AddAsync(roomMember, ct);
+    }
+
+    public Task RemoveMemberAsync(RoomMember roomMember, CancellationToken ct = default)
+    {
+        _dbContext.RoomMembers.Remove(roomMember);
+        return Task.CompletedTask;
     }
 }

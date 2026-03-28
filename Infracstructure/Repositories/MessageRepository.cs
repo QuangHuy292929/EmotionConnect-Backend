@@ -14,22 +14,22 @@ public class MessageRepository : IMessageRepository
         _dbContext = dbContext;
     }
 
-    public Task AddAsync(Message message, CancellationToken cancellationToken = default)
+    public async Task AddAsync(Message message, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Messages.AddAsync(message, cancellationToken).AsTask();
+        await _dbContext.Messages.AddAsync(message, cancellationToken);
     }
 
-    public Task<Message?> GetByIdAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task<Message?> GetByIdAsync(Guid messageId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Messages
+        return await _dbContext.Messages
             .Include(x => x.Sender)
             .Include(x => x.Room)
             .FirstOrDefaultAsync(x => x.Id == messageId, cancellationToken);
     }
 
-    public Task<List<Message>> GetByRoomIdAsync(Guid roomId, CancellationToken cancellationToken = default)
+    public async Task<List<Message>> GetByRoomIdAsync(Guid roomId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Messages
+        return await _dbContext.Messages
             .Include(x => x.Sender)
             .Where(x => x.RoomId == roomId)
             .OrderBy(x => x.CreatedAt)

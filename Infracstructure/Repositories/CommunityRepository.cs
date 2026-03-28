@@ -14,51 +14,49 @@ public class CommunityRepository : ICommunityRepository
         _dbContext = dbContext;
     }
 
-    public Task<List<Community>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<List<Community>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return _dbContext.Communities
+        return await _dbContext.Communities
             .Include(x => x.Members)
             .Include(x => x.Rooms)
             .OrderBy(x => x.Name)
             .ToListAsync(cancellationToken);
     }
 
-    public Task<Community?> GetByIdAsync(Guid communityId, CancellationToken cancellationToken = default)
+    public async Task<Community?> GetByIdAsync(Guid communityId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Communities
+        return await _dbContext.Communities
             .Include(x => x.Members)
             .Include(x => x.Rooms)
             .FirstOrDefaultAsync(x => x.Id == communityId, cancellationToken);
     }
 
-    public Task<Community?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    public async Task<Community?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Communities
+        return await _dbContext.Communities
             .Include(x => x.Members)
             .Include(x => x.Rooms)
             .FirstOrDefaultAsync(x => x.Slug == slug, cancellationToken);
     }
 
-    public Task<bool> IsUserJoinedAsync(Guid communityId, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<bool> IsUserJoinedAsync(Guid communityId, Guid userId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.CommunityMembers
+        return await _dbContext.CommunityMembers
             .AnyAsync(x => x.CommunityId == communityId && x.UserId == userId, cancellationToken);
     }
 
-    public Task AddMemberAsync(CommunityMember member, CancellationToken cancellationToken = default)
-    {
-        return _dbContext.CommunityMembers.AddAsync(member, cancellationToken).AsTask();
-    }
+    public async Task AddMemberAsync(CommunityMember member, CancellationToken cancellationToken = default)
+    =>await _dbContext.CommunityMembers.AddAsync(member, cancellationToken);
 
-    public Task RemoveMemberAsync(CommunityMember member)
+    public  Task RemoveMemberAsync(CommunityMember member)
     {
         _dbContext.CommunityMembers.Remove(member);
         return Task.CompletedTask;
     }
 
-    public Task<List<Community>> GetJoinedCommunitiesAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<List<Community>> GetJoinedCommunitiesAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Communities
+        return await _dbContext.Communities
             .Include(x => x.Members)
             .Include(x => x.Rooms)
             .Where(x => x.Members.Any(m => m.UserId == userId))
@@ -66,9 +64,9 @@ public class CommunityRepository : ICommunityRepository
             .ToListAsync(cancellationToken);
     }
 
-    public Task<CommunityMember?> GetMemberAsync(Guid communityId, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<CommunityMember?> GetMemberAsync(Guid communityId, Guid userId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.CommunityMembers
+        return await _dbContext.CommunityMembers
             .FirstOrDefaultAsync(x => x.CommunityId == communityId && x.UserId == userId, cancellationToken);
     }
 }

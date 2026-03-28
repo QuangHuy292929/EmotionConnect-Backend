@@ -15,29 +15,41 @@ public class AuthRepository : IAuthRepository
         _dbContext = dbContext;
     }
 
-    public Task<bool> EmailExistsAsync(string normalizedEmail, CancellationToken cancellationToken = default)
+    public async Task<bool> EmailExistsAsync(string normalizedEmail, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Users
+        return await _dbContext.Users
             .AnyAsync(x => x.Email.ToLower() == normalizedEmail, cancellationToken);
     }
 
-    public Task<bool> UsernameExistsAsync(string normalizedUsername, CancellationToken cancellationToken = default)
+    public async Task<bool> UsernameExistsAsync(string normalizedUsername, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Users
+        return await _dbContext.Users
             .AnyAsync(x => x.Username.ToLower() == normalizedUsername, cancellationToken);
     }
 
-    public Task<User?> GetByEmailOrUsernameAsync(string normalizedIdentifier, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsByIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Users
+        return await _dbContext.Users
+            .AnyAsync(x => x.Id == userId, cancellationToken);
+    }
+
+    public async Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Users
+            .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+    }
+
+    public async Task<User?> GetByEmailOrUsernameAsync(string normalizedIdentifier, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Users
             .FirstOrDefaultAsync(
                 x => x.Email.ToLower() == normalizedIdentifier || x.Username.ToLower() == normalizedIdentifier,
                 cancellationToken);
     }
 
-    public Task<UserSummaryDto?> GetCurrentUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<UserSummaryDto?> GetCurrentUserAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Users
+        return await _dbContext.Users
             .Where(x => x.Id == userId)
             .Select(x => new UserSummaryDto
             {
@@ -49,8 +61,8 @@ public class AuthRepository : IAuthRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task AddAsync(User user, CancellationToken cancellationToken = default)
+    public async Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Users.AddAsync(user, cancellationToken).AsTask();
+        await _dbContext.Users.AddAsync(user, cancellationToken);
     }
 }

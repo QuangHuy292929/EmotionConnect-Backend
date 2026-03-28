@@ -14,24 +14,24 @@ public class EmotionRepository : IEmotionRepository
         _dbContext = dbContext;
     }
 
-    public Task AddEmotionEntryAsync(EmotionEntry emotionEntry, CancellationToken cancellationToken = default)
+    public async Task AddEmotionEntryAsync(EmotionEntry emotionEntry, CancellationToken cancellationToken = default)
     {
-        return _dbContext.EmotionEntries.AddAsync(emotionEntry, cancellationToken).AsTask();
+        await _dbContext.EmotionEntries.AddAsync(emotionEntry, cancellationToken);
     }
 
-    public Task AddEmotionScoresAsync(IEnumerable<EmotionScore> scores, CancellationToken cancellationToken = default)
+    public async Task AddEmotionScoresAsync(IEnumerable<EmotionScore> scores, CancellationToken cancellationToken = default)
     {
-        return _dbContext.EmotionScores.AddRangeAsync(scores, cancellationToken);
+        await _dbContext.EmotionScores.AddRangeAsync(scores, cancellationToken);
     }
 
-    public Task AddEmbeddingAsync(TextEmbedding embedding, CancellationToken cancellationToken = default)
+    public async Task AddEmbeddingAsync(TextEmbedding embedding, CancellationToken cancellationToken = default)
     {
-        return _dbContext.TextEmbeddings.AddAsync(embedding, cancellationToken).AsTask();
+        await _dbContext.TextEmbeddings.AddAsync(embedding, cancellationToken);
     }
 
-    public Task<EmotionEntry?> GetByIdAsync(Guid emotionEntryId, CancellationToken cancellationToken = default)
+    public async Task<EmotionEntry?> GetByIdAsync(Guid emotionEntryId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.EmotionEntries
+        return await _dbContext.EmotionEntries
             .Include(x => x.Scores)
             .Include(x => x.Embedding)
             .Include(x => x.Community)
@@ -39,9 +39,9 @@ public class EmotionRepository : IEmotionRepository
             .FirstOrDefaultAsync(x => x.Id == emotionEntryId, cancellationToken);
     }
 
-    public Task<List<EmotionEntry>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<List<EmotionEntry>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.EmotionEntries
+        return await _dbContext.EmotionEntries
             .Include(x => x.Scores)
             .Include(x => x.Embedding)
             .Where(x => x.UserId == userId)
