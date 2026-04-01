@@ -1,15 +1,13 @@
-﻿using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Application.DTOs.Matching;
+using Domain.Entities;
 
-namespace Application.Interfaces.IRepositories
+namespace Application.Interfaces.IRepositories;
+
+public interface IMatchingRepository
 {
-    public interface IMatchingRepository
-    {
-        Task AddRequestAsync(MatchingRequest request, CancellationToken cancellationToken = default);
-        Task AddCandidatesAsync(IEnumerable<MatchingCandidate> candidates, CancellationToken cancellationToken = default);
-        Task<MatchingRequest?> GetRequestByIdAsync(Guid matchingRequestId, CancellationToken cancellationToken = default);
-        Task<List<MatchingCandidate>> GetCandidatesAsync(Guid matchingRequestId, CancellationToken cancellationToken = default);
-    }
+    Task AddRequestAsync(MatchingRequest request, CancellationToken cancellationToken = default);
+    Task AddCandidatesAsync(IEnumerable<MatchingCandidate> candidates, CancellationToken cancellationToken = default);
+    Task<MatchingRequest?> GetRequestByIdAsync(Guid matchingRequestId, CancellationToken cancellationToken = default);
+    Task<List<MatchingCandidate>> GetCandidatesAsync(Guid matchingRequestId, CancellationToken cancellationToken = default);
+    Task<List<MatchingCandidateSeed>> FindSimilarUsersAsync(Guid emotionEntryId, Guid userId, CancellationToken cancellationToken = default);
 }

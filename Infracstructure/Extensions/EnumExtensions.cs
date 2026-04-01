@@ -2,23 +2,22 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Infracstructure.Extensions
+namespace Infracstructure.Extensions;
+
+public static class EnumExtensions
 {
-    public static class EnumExtensions
+    public static T ToEnum<T>(this string value, T defaultValue = default) where T : struct, Enum
     {
-        public static T ToEnum<T>(this string value, T defaultValue = default) where T : struct, Enum
+        if (Enum.TryParse<T>(value, true, out var result))
         {
-            if (Enum.TryParse<T>(value, true, out var result))
-            {
-                return result;
-            }
-
-            return defaultValue;
+            return result;
         }
 
-        public static bool TryToEnum<T>(this string value, out T result) where T : struct, Enum
-        {
-            return Enum.TryParse<T>(value, true, out result);
-        }
+        return defaultValue;
+    }
+
+    public static bool TryToEnum<T>(this string value, out T result) where T : struct, Enum
+    {
+        return Enum.TryParse<T>(value, true, out result);
     }
 }

@@ -17,7 +17,8 @@ namespace Infracstructure.Services
         }
         public Task<MatchingResultDto> CreateMatchingAsync(Guid emotionEntryId, Guid userId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var emotionEntry = _unitOfWork.EmotionRepository.GetByIdAsync(emotionEntryId, cancellationToken).Result;
+            if()
         }
 
         public Task<RoomDto?> CreateRoomFromMatchingAsync(Guid matchingRequestId, CancellationToken cancellationToken = default)

@@ -1,102 +1,84 @@
 using Application.DTOs.AI;
 using Application.Interfaces.Common;
+using Infracstructure.AI;
+using Microsoft.Extensions.Options;
+using System.Net.Http.Json;
 
 namespace Infracstructure.Services;
 
 public class AiService : IAiService
 {
-    public Task<AnalyzeResponseDto> AnalyzeAsync(string text, CancellationToken cancellationToken = default)
-    {
-        var emotions = BuildPredictions(text);
+    private readonly HttpClient _httpClient;
+    private readonly AIServiceOptions _options;
 
-        return Task.FromResult(new AnalyzeResponseDto
-        {
-            Text = text,
-            TopEmotion = emotions.FirstOrDefault(),
-            AllEmotions = emotions,
-            SimilarSentences = new List<SemanticSearchResultDto>(),
-            Vector = BuildVector(text)
-        });
+    public AiService(HttpClient httpClient, IOptions<AIServiceOptions> options)
+    {
+        _httpClient = httpClient;
+        _options = options.Value;
     }
 
-    public Task<EmotionDetectionResponseDto> DetectEmotionAsync(string text, CancellationToken cancellationToken = default)
+    public async Task<AnalyzeResponseDto> AnalyzeAsync(string text, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new EmotionDetectionResponseDto
-        {
-            Text = text,
-            Emotions = BuildPredictions(text)
-        });
+        ValidateText(text);
+
+        var response = await _httpClient.PostAsJsonAsync(
+            "/api/analyze",
+            new { text = text.Trim() },
+            cancellationToken);
+
+        await EnsureSuccessAsync(response, cancellationToken);
+
+        var result = await response.Content.ReadFromJsonAsync<AnalyzeResponseDto>(cancellationToken: cancellationToken);
+        return result ?? throw new InvalidOperationException("AI service returned empty analyze response.");
     }
 
-    public Task<EmbeddingResponseDto> GenerateEmbeddingAsync(string text, CancellationToken cancellationToken = default)
+    public async Task<EmbeddingResponseDto> GenerateEmbeddingAsync(string text, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new EmbeddingResponseDto
-        {
-            Text = text,
-            Vector = BuildVector(text)
-        });
+        ValidateText(text);
+
+        var response = await _httpClient.PostAsJsonAsync(
+            "/api/embed",
+            new { text = text.Trim() },
+            cancellationToken);
+
+        await EnsureSuccessAsync(response, cancellationToken);
+
+        var result = await response.Content.ReadFromJsonAsync<EmbeddingResponseDto>(cancellationToken: cancellationToken);
+        return result ?? throw new InvalidOperationException("AI service returned empty embedding response.");
     }
 
-    private static List<EmotionPredictionDto> BuildPredictions(string text)
+    public async Task<EmotionDetectionResponseDto> DetectEmotionAsync(string text, CancellationToken cancellationToken = default)
     {
-        var normalized = text.Trim().ToLowerInvariant();
+        ValidateText(text);
 
-        var top = normalized switch
-        {
-            var t when t.Contains("buồn") || t.Contains("cô đơn") || t.Contains("tủi") => "sadness",
-            var t when t.Contains("vui") || t.Contains("hạnh phúc") || t.Contains("biết ơn") => "joy",
-            var t when t.Contains("giận") || t.Contains("tức") || t.Contains("khó chịu") => "anger",
-            var t when t.Contains("lo") || t.Contains("sợ") || t.Contains("áp lực") || t.Contains("căng thẳng") => "fear",
-            _ => "neutral"
-        };
+        var response = await _httpClient.PostAsJsonAsync(
+            "/api/emotion",
+            new { text = text.Trim() },
+            cancellationToken);
 
-        return top switch
-        {
-            "sadness" => new List<EmotionPredictionDto>
-            {
-                new() { Label = "sadness", Score = 0.78 },
-                new() { Label = "fear", Score = 0.14 },
-                new() { Label = "neutral", Score = 0.08 }
-            },
-            "joy" => new List<EmotionPredictionDto>
-            {
-                new() { Label = "joy", Score = 0.81 },
-                new() { Label = "neutral", Score = 0.11 },
-                new() { Label = "sadness", Score = 0.08 }
-            },
-            "anger" => new List<EmotionPredictionDto>
-            {
-                new() { Label = "anger", Score = 0.76 },
-                new() { Label = "fear", Score = 0.15 },
-                new() { Label = "neutral", Score = 0.09 }
-            },
-            "fear" => new List<EmotionPredictionDto>
-            {
-                new() { Label = "fear", Score = 0.74 },
-                new() { Label = "sadness", Score = 0.17 },
-                new() { Label = "neutral", Score = 0.09 }
-            },
-            _ => new List<EmotionPredictionDto>
-            {
-                new() { Label = "neutral", Score = 0.72 },
-                new() { Label = "sadness", Score = 0.15 },
-                new() { Label = "joy", Score = 0.13 }
-            }
-        };
+        await EnsureSuccessAsync(response, cancellationToken);
+
+        var result = await response.Content.ReadFromJsonAsync<EmotionDetectionResponseDto>(cancellationToken: cancellationToken);
+        return result ?? throw new InvalidOperationException("AI service returned empty emotion response.");
     }
 
-    private static IReadOnlyList<float> BuildVector(string text)
+    private static void ValidateText(string text)
     {
-        const int dimension = 384;
-        var vector = new float[dimension];
-        var seed = text.Aggregate(17, (current, c) => current * 31 + c);
-        var random = new Random(seed);
-
-        for (var i = 0; i < dimension; i++)
+        if (string.IsNullOrWhiteSpace(text))
         {
-            vector[i] = (float)(random.NextDouble() * 2 - 1);
+            throw new ArgumentException("Text is required.", nameof(text));
+        }
+    }
+
+    private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        if (response.IsSuccessStatusCode)
+        {
+            return;
         }
 
-        return vector;
+        var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+        throw new HttpRequestException(
+            $"AI service request failed. Status: {(int)response.StatusCode}. Response: {errorBody}");
     }
 }

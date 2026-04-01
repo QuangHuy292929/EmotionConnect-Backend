@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Application.DTOs.Auth;
 using Application.Interfaces.IServices;
+using Infracstructure.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -51,20 +52,13 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<ActionResult<UserSummaryDto>> Me(CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue(ClaimTypes.Name)
-            ?? User.FindFirstValue("sub");
-
-        if (!Guid.TryParse(userIdClaim, out var userId))
-        {
-            return Unauthorized(new { message = "Invalid user token." });
-        }
+        var userId = User.GetCurrentUserId();
 
         var user = await _authService.GetCurrentUserAsync(userId, cancellationToken);
         if (user is null)
         {
             return NotFound(new { message = "User not found." });
-        }
+        }   
 
         return Ok(user);
     }

@@ -48,4 +48,6 @@ public class EmotionRepository : IEmotionRepository
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
     }
+
+
 }

@@ -2,6 +2,7 @@ using Application.Interfaces;
 using Application.Interfaces.Common;
 using Application.Interfaces.IRepositories;
 using Application.Interfaces.IServices;
+using Infracstructure.AI;
 using Infracstructure.Persistence;
 using Infracstructure.Repositories;
 using Infracstructure.Security;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Infracstructure;
 
@@ -29,6 +31,21 @@ public static class DependencyInjection
                 npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
                 npgsqlOptions.UseVector();
             });
+        });
+
+        services.Configure<AIServiceOptions>(configuration.GetSection(AIServiceOptions.SectionName));
+
+        services.AddHttpClient<IAiService, AiService>((serviceProvider, client) =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<AIServiceOptions>>().Value;
+
+            if (string.IsNullOrWhiteSpace(options.BaseUrl))
+            {
+                throw new InvalidOperationException("AIService:BaseUrl is not configured.");
+            }
+
+            client.BaseAddress = new Uri(options.BaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
         });
 
         services.AddScoped<PasswordHasher<Domain.Entities.User>>();
@@ -51,7 +68,6 @@ public static class DependencyInjection
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IReflectionService, ReflectionService>();
         services.AddScoped<IEmotionService, EmotionService>();
-        services.AddScoped<IAiService, AiService>();
 
         return services;
     }

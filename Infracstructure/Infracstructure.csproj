@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="AI\" />
     <Folder Include="SignalR\" />
   </ItemGroup>
 
