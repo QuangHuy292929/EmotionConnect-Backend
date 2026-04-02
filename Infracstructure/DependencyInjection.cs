@@ -3,6 +3,7 @@ using Application.Interfaces.Common;
 using Application.Interfaces.IRepositories;
 using Application.Interfaces.IServices;
 using Infracstructure.AI;
+using Infracstructure.Presence;
 using Infracstructure.Persistence;
 using Infracstructure.Repositories;
 using Infracstructure.Security;
@@ -12,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 
 namespace Infracstructure;
 
@@ -23,6 +25,7 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.Configure<RedisPresenceOptions>(configuration.GetSection(RedisPresenceOptions.SectionName));
 
         services.AddDbContext<ApplicationDbContext>(options =>
         {
@@ -34,6 +37,17 @@ public static class DependencyInjection
         });
 
         services.Configure<AIServiceOptions>(configuration.GetSection(AIServiceOptions.SectionName));
+
+        services.AddSingleton<IConnectionMultiplexer>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<RedisPresenceOptions>>().Value;
+            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+            {
+                throw new InvalidOperationException("RedisPresence:ConnectionString is not configured.");
+            }
+
+            return ConnectionMultiplexer.Connect(options.ConnectionString);
+        });
 
         services.AddHttpClient<IAiService, AiService>((serviceProvider, client) =>
         {
@@ -68,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IReflectionService, ReflectionService>();
         services.AddScoped<IEmotionService, EmotionService>();
+        services.AddScoped<IUserPresenceService, UserPresenceService>();
 
         return services;
     }

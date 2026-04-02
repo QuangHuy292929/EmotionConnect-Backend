@@ -27,8 +27,10 @@ public class TextEmbeddingConfiguration : IEntityTypeConfiguration<TextEmbedding
         builder.Property(x => x.UpdatedAt).IsRequired();
 
         builder.HasIndex(x => x.EmotionEntryId).IsUnique();
-        builder.HasIndex(x => x.Embedding)
-            .HasMethod("ivfflat")
-            .HasOperators("vector_cosine_ops");
+        builder.HasIndex(x => x.Embedding, "ix_embeddings_hnsw_cosine")
+           .HasMethod("hnsw")
+           .HasOperators("vector_cosine_ops")
+           .HasStorageParameter("m", 24)
+           .HasStorageParameter("ef_construction", 100);
     }
 }
