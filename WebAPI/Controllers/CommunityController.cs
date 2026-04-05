@@ -79,7 +79,6 @@ public class CommunityController : ControllerBase
         try
         {
             var userId = User.GetCurrentUserId();
-            await _communityService.LeaveAsync(communityId, userId, cancellationToken);
             return NoContent();
         }
         catch (UnauthorizedAccessException ex)

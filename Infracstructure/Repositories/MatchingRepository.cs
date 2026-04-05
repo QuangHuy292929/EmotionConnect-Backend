@@ -58,7 +58,7 @@ public class MatchingRepository : IMatchingRepository
             ranked_candidates AS (
                 SELECT DISTINCT ON (candidate_entry.user_id)
                     candidate_entry.user_id AS ""CandidateUserId"",
-                    CAST(1 - (source_embedding.embedding <=> candidate_embedding.embedding) AS double precision) AS ""SimilarityScore"",
+                    CAST(1 - (source_embedding.embedding <=> candidate_embedding.embedding) AS numeric(6,5)) AS ""SimilarityScore"",
                     CASE
                         WHEN candidate_entry.community_id IS NOT DISTINCT FROM source_entry.community_id
                             THEN 'Same community and similar emotional context.'
