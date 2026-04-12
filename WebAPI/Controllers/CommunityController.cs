@@ -42,48 +42,23 @@ public class CommunityController : ControllerBase
     [HttpGet("my")]
     public async Task<ActionResult<List<CommunityDto>>> GetMyCommunities(CancellationToken cancellationToken)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            var communities = await _communityService.GetJoinedCommunitiesAsync(userId, cancellationToken);
-            return Ok(communities);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
+        var userId = User.GetCurrentUserId();
+        var communities = await _communityService.GetJoinedCommunitiesAsync(userId, cancellationToken);
+        return Ok(communities);
     }
 
     [HttpPost("{communityId:guid}/join")]
     public async Task<IActionResult> Join(Guid communityId, CancellationToken cancellationToken)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            await _communityService.JoinAsync(communityId, userId, cancellationToken);
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var userId = User.GetCurrentUserId();
+        await _communityService.JoinAsync(communityId, userId, cancellationToken);
+        return NoContent();
     }
 
     [HttpDelete("{communityId:guid}/leave")]
     public async Task<IActionResult> Leave(Guid communityId, CancellationToken cancellationToken)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
+        var userId = User.GetCurrentUserId();
+        return NoContent();
     }
 }

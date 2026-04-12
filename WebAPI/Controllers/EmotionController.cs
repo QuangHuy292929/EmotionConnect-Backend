@@ -20,53 +20,28 @@ public class EmotionController : ControllerBase
     [HttpPost("analyze")]
     public async Task<ActionResult<EmotionAnalysisResultDto>> Analyze(CreateEmotionEntryRequest request, CancellationToken ct)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            var result = await _emotionService.CreateAndAnalyzeAsync(request, userId, ct);
-            return Ok(result);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
+        var userId = User.GetCurrentUserId();
+        var result = await _emotionService.CreateAndAnalyzeAsync(request, userId, ct);
+        return Ok(result);
     }
 
     [HttpGet("{emotionEntryId:guid}")]
     public async Task<ActionResult<EmotionEntryDto>> GetById(Guid emotionEntryId, CancellationToken ct)
     {
-        try
+        var result = await _emotionService.GetByIdAsync(emotionEntryId, ct);
+        if (result == null)
         {
-            var result = await _emotionService.GetByIdAsync(emotionEntryId, ct);
-            if (result == null)
-            {
-                return NotFound(new { message = "Emotion Entry Not Found" });
-            }
-            return Ok(result);
+            return NotFound(new { message = "Emotion Entry Not Found" });
         }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     [HttpGet("my")]
     public async Task<ActionResult<List<EmotionEntryDto>>> GetMyEntries(
        CancellationToken cancellationToken)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            var result = await _emotionService.GetMyEntriesAsync(userId, cancellationToken);
-            return Ok(result);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
+        var userId = User.GetCurrentUserId();
+        var result = await _emotionService.GetMyEntriesAsync(userId, cancellationToken);
+        return Ok(result);
     }
 }

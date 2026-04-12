@@ -24,70 +24,28 @@ public class MatchingController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<MatchingResultDto>> CreateMatching(CreateMatchingRequest request, CancellationToken ct)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            var result = await _matchingService.CreateMatchingAsync(request.emtionEntryId, userId, ct);
-            return Ok(result);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-    }
+        var userId = User.GetCurrentUserId();
+        var result = await _matchingService.CreateMatchingAsync(request.emtionEntryId, userId, ct);
+        return Ok(result);
+}
 
     [HttpGet("{matchingRequestId:guid}/candidates")]
     public async Task<ActionResult<List<MatchingCandidateDto>>> GetCandidates(Guid matchingRequestId, CancellationToken ct)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            var result = await _matchingService.GetCandidatesAsync(userId, matchingRequestId, ct);
-            return Ok(result);
-        }
-        catch (NoMatchFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var userId = User.GetCurrentUserId();
+        var result = await _matchingService.GetCandidatesAsync(userId, matchingRequestId, ct);
+        return Ok(result);
     }
 
     [HttpPost("{matchingRequestId:guid}/room")]
     public async Task<ActionResult<RoomDto>> CreateRoom(Guid matchingRequestId, CancellationToken ct)
     {
-        try
+        var userId = User.GetCurrentUserId();
+        var result = await _matchingService.CreateRoomFromMatchingAsync(userId, matchingRequestId, ct);
+        if (result == null)
         {
-            var userId = User.GetCurrentUserId();
-            var result = await _matchingService.CreateRoomFromMatchingAsync(userId, matchingRequestId, ct);
-            if (result == null)
-            {
-                return NotFound(new { message = "Unable to create room from the matching request." });
-            }
-            return Ok(result);
-
+            return NotFound(new { message = "Unable to create room from the matching request." });
         }
-        catch (NoMatchFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        return Ok(result);
     }
 }

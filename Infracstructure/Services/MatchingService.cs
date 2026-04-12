@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Matching;
 using Application.DTOs.Room;
+using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Common;
 using Application.Interfaces.IServices;
@@ -25,7 +26,7 @@ public class MatchingService : IMatchingService
     {
         var emtionEntry = await _unitOfWork.EmotionRepository.GetByIdAsync(emotionEntryId, cancellationToken);
         if (emtionEntry == null) {
-            throw new KeyNotFoundException("Did not find emotion entry belong to this user");
+            throw new NotFoundException("Did not find emotion entry belong to this user");
         };
 
         var candidates = await _unitOfWork.MatchingRepository.FindSimilarUsersAsync(emotionEntryId, userId, cancellationToken);
@@ -79,7 +80,7 @@ public class MatchingService : IMatchingService
         var request = await _unitOfWork.MatchingRepository.GetRequestByIdAsync(matchingRequestId, cancellationToken);
         if (request == null)
         {
-            throw new NoMatchFoundException("Did not found candidate request by this id");
+            throw new NotFoundException("Did not found candidate request by this id");
         }
 
         var candidates = await _unitOfWork.MatchingRepository.GetCandidatesAsync(matchingRequestId, cancellationToken);
@@ -92,7 +93,7 @@ public class MatchingService : IMatchingService
 
         if (!selectedCandidates.Any())
         {
-            throw new NoMatchFoundException("Did not found any candidate with similarity score higher than threshold");
+            throw new NotFoundException("Did not found any candidate with similarity score higher than threshold");
         }
 
         var room = new Room
@@ -141,7 +142,7 @@ public class MatchingService : IMatchingService
         var request = await _unitOfWork.MatchingRepository.GetRequestByIdAsync(matchingRequestId, cancellationToken);
         if (request == null)
         {
-            throw new NoMatchFoundException("Did not found candidate request by this id");
+            throw new NotFoundException("Did not found candidate request by this id");
         }
 
         var candidates = await _unitOfWork.MatchingRepository.GetCandidatesAsync(matchingRequestId, cancellationToken);
@@ -154,12 +155,12 @@ public class MatchingService : IMatchingService
 
         if (request is null)
         {
-            throw new KeyNotFoundException("Matching request not found.");
+            throw new NotFoundException("Matching request not found.");
         }
 
         if (request.UserId != userId)
         {
-            throw new UnauthorizedAccessException("You do not have access to this matching request.");
+            throw new ForbiddenException("You do not have access to this matching request.");
         }
 
         return request;

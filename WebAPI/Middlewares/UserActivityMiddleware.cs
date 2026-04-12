@@ -22,21 +22,14 @@ public class UserActivityMiddleware
     {
         if (ShouldTrack(context))
         {
-            try
-            {
-                var userId = context.User.GetCurrentUserId();
-                var cacheKey = $"presence:last-active:{userId}";
+            var userId = context.User.GetCurrentUserId();
+            var cacheKey = $"presence:last-active:{userId}";
 
-                if (!_cache.TryGetValue<DateTime>(cacheKey, out var lastUpdated) ||
-                    DateTime.UtcNow - lastUpdated > UpdateInterval)
-                {
-                    await userPresenceService.UpdateLastActiveAsync(userId, context.RequestAborted);
-                    _cache.Set(cacheKey, DateTime.UtcNow, CacheTtl);
-                }
-            }
-            catch (UnauthorizedAccessException)
+            if (!_cache.TryGetValue<DateTime>(cacheKey, out var lastUpdated) ||
+                DateTime.UtcNow - lastUpdated > UpdateInterval)
             {
-                // Ignore invalid claims and continue request pipeline.
+                await userPresenceService.UpdateLastActiveAsync(userId, context.RequestAborted);
+                _cache.Set(cacheKey, DateTime.UtcNow, CacheTtl);
             }
         }
 

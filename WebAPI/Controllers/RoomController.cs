@@ -42,72 +42,32 @@ public class RoomController : ControllerBase
     [HttpGet("my")]
     public async Task<ActionResult<List<RoomDto>>> GetMyRooms(CancellationToken cancellationToken)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            var rooms = await _roomService.GetMyRoomsAsync(userId, cancellationToken);
-            return Ok(rooms);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
+        var userId = User.GetCurrentUserId();
+        var rooms = await _roomService.GetMyRoomsAsync(userId, cancellationToken);
+        return Ok(rooms);
     }
 
     [HttpPost]
     public async Task<ActionResult<RoomDto>> Create(CreateRoomRequest request, CancellationToken cancellationToken)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            var room = await _roomService.CreateAsync(request, userId, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { roomId = room.Id }, room);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var userId = User.GetCurrentUserId();
+        var room = await _roomService.CreateAsync(request, userId, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { roomId = room.Id }, room);
     }
 
     [HttpPost("{roomId:guid}/join")]
     public async Task<IActionResult> Join(Guid roomId, CancellationToken cancellationToken)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            await _roomService.JoinRoomAsync(roomId, userId, cancellationToken);
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { message = ex.Message });
-        }
+        var userId = User.GetCurrentUserId();
+        await _roomService.JoinRoomAsync(roomId, userId, cancellationToken);
+        return NoContent();
     }
 
     [HttpDelete("{roomId:guid}/leave")]
     public async Task<IActionResult> Leave(Guid roomId, CancellationToken cancellationToken)
     {
-        try
-        {
-            var userId = User.GetCurrentUserId();
-            await _roomService.LeaveRoomAsync(roomId, userId, cancellationToken);
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
+        var userId = User.GetCurrentUserId();
+        await _roomService.LeaveRoomAsync(roomId, userId, cancellationToken);
+        return NoContent();
     }
 }
