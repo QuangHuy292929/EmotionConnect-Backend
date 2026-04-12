@@ -48,8 +48,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
 
-                if (!string.IsNullOrWhiteSpace(accessToken) &&
-                    path.StartsWithSegments("/hubs/presence"))
+                if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/hubs/presence") || path.StartsWithSegments("/hubs/chat")))
                 {
                     context.Token = accessToken;
                 }
@@ -92,5 +91,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<PresenceHub>("/hubs/presence");
- 
+app.MapHub<ChatHub>("/hubs/chat");
+
+
 app.Run();
