@@ -47,6 +47,7 @@ public static class DependencyInjection
             client.BaseAddress = new Uri(options.BaseUrl);
             client.Timeout = TimeSpan.FromSeconds(30);
         });
+        services.AddHttpClient();
 
         services.AddScoped<PasswordHasher<Domain.Entities.User>>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -64,7 +65,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICommunityService, CommunityService>();
         services.AddScoped<IRoomService, RoomService>();
-        services.AddScoped<IMatchingService, MatchingService>();
+      //  services.AddScoped<IMatchingService, MatchingService>();
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IReflectionService, ReflectionService>();
         services.AddScoped<IEmotionService, EmotionService>();

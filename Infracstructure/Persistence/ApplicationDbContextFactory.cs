@@ -10,7 +10,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         var connectionString =
             Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
             ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION")
-            ?? "Host=localhost;Port=5432;Database=emotion_connect;Username=postgres;Password=12345";
+            ?? "Host=localhost;Port=5433;Database=emotion_db;Username=postgres;Password=12345";
 
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         optionsBuilder.UseNpgsql(connectionString, options =>
