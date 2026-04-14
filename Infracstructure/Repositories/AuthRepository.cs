@@ -65,4 +65,24 @@ public class AuthRepository : IAuthRepository
     {
         await _dbContext.Users.AddAsync(user, cancellationToken);
     }
+
+
+    public async Task<User?> GetByGoogleIdAsync(string googleId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Users
+            .FirstOrDefaultAsync(x => x.GoogleId == googleId, cancellationToken);
+    }
+
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var normalized = email.Trim().ToLowerInvariant();
+        return await _dbContext.Users
+            .FirstOrDefaultAsync(x => x.Email.ToLower() == normalized, cancellationToken);
+    }
+
+    public Task UpdateAsync(User user, CancellationToken cancellationToken = default)
+    {
+        _dbContext.Users.Update(user);
+        return Task.CompletedTask;
+    }
 }

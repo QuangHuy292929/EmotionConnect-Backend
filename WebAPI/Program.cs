@@ -15,6 +15,18 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5174") // frontend
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // QUAN TRỌNG
+        });
+});
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -28,7 +40,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 
     options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-
     {
         [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
@@ -82,16 +93,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
 
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
-app.UseMiddleware<UserActivityMiddleware>();
-app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthorization();
-
-app.MapControllers();
 app.MapHub<PresenceHub>("/hubs/presence");
 app.MapHub<ChatHub>("/hubs/chat");
-
+app.MapControllers();
 
 app.Run();
