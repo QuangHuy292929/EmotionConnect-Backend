@@ -1,4 +1,5 @@
 using Application.DTOs.Room;
+using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.IServices;
 using Domain.Entities;
@@ -21,22 +22,22 @@ public class RoomService : IRoomService
     {
         if (request is null)
         {
-            throw new ArgumentNullException(nameof(request));
+            throw new BadRequestException($"Request is not allow null. {nameof(request)}");
         }
 
         if (createByUserId == Guid.Empty)
         {
-            throw new ArgumentException("CreateByUserId is required.", nameof(createByUserId));
+            throw new BadRequestException($"CreateByUserId is required {nameof(createByUserId)}");
         }
 
         if (request.MaxMembers <= 0)
         {
-            throw new ArgumentException("MaxMembers must be greater than 0.", nameof(request.MaxMembers));
+            throw new BadRequestException($"MaxMembers must be greater than 0. {nameof(request.MaxMembers)}");
         }
 
         if (!request.RoomType.TryToEnum(out RoomType roomType))
         {
-            throw new ArgumentException($"RoomType '{request.RoomType}' is invalid.", nameof(request.RoomType));
+            throw new BadRequestException($"RoomType '{request.RoomType}' is invalid.");
         }
 
         var room = new Room
@@ -68,7 +69,7 @@ public class RoomService : IRoomService
     {
         if (coomunityId == Guid.Empty)
         {
-            throw new ArgumentException("CommunityId is required.", nameof(coomunityId));
+            throw new BadRequestException($"CommunityId is required. {nameof(coomunityId)}");
         }
 
         var rooms = await _unitOfWork.RoomRepository.GetByCommunityIdAsync(coomunityId, ct);
@@ -79,7 +80,7 @@ public class RoomService : IRoomService
     {
         if (roomId == Guid.Empty)
         {
-            throw new ArgumentException("RoomId is required.", nameof(roomId));
+            throw new BadRequestException($"RoomId is required. {nameof(roomId)}" );
         }
 
         var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId, ct);
@@ -90,7 +91,7 @@ public class RoomService : IRoomService
     {
         if (userId == Guid.Empty)
         {
-            throw new ArgumentException("UserId is required.", nameof(userId));
+            throw new BadRequestException($"UserId is required. {nameof(userId)}");
         }
 
         var rooms = await _unitOfWork.RoomRepository.GetByUserIdAync(userId, cancellationToken);
@@ -102,7 +103,7 @@ public class RoomService : IRoomService
         var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId, cancellationToken);
         if (room is null)
         {
-            throw new KeyNotFoundException("Room not found.");
+            throw new NotFoundException("Room not found.");
         }
 
         var alreadyInRoom = await _unitOfWork.RoomRepository.IsUserInRoomAsync(roomId, userId, cancellationToken);
@@ -113,7 +114,7 @@ public class RoomService : IRoomService
 
         if (room.Members.Count >= room.MaxMembers)
         {
-            throw new InvalidOperationException("Room is full.");
+            throw new ConflictException("Room is full.");
         }
 
         var member = new RoomMember
@@ -130,12 +131,12 @@ public class RoomService : IRoomService
     {
         if (roomId == Guid.Empty)
         {
-            throw new ArgumentException("RoomId is required.", nameof(roomId));
+            throw new BadRequestException($"RoomId is required. {nameof(roomId)}" );
         }
 
         if (userId == Guid.Empty)
         {
-            throw new ArgumentException("UserId is required.", nameof(userId));
+            throw new BadRequestException($"UserId is required. {nameof(userId)}");
         }
 
         var member = await _unitOfWork.RoomRepository.GetRoomMemberAsync(roomId, userId, cancellationToken);

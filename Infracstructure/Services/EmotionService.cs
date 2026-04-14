@@ -1,4 +1,5 @@
 using Application.DTOs.Emotion;
+using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Common;
 using Application.Interfaces.IServices;
@@ -25,22 +26,22 @@ public class EmotionService : IEmotionService
     {
         if (request is null)
         {
-            throw new ArgumentNullException(nameof(request));
+            throw new BadRequestException($"Request is null {nameof(request)}");
         }
 
         if (userId == Guid.Empty)
         {
-            throw new ArgumentException("UserId is required.", nameof(userId));
+            throw new BadRequestException($"UserId is required. { nameof(userId) }" );
         }
 
         if (string.IsNullOrWhiteSpace(request.RawText))
         {
-            throw new ArgumentException("RawText is required.", nameof(request.RawText));
+            throw new BadRequestException($"RawText is required.{nameof(request.RawText)}");
         }
 
         if (!request.SourceType.TryToEnum(out EmotionSourceType sourceType))
         {
-            throw new ArgumentException($"SourceType '{request.SourceType}' is invalid.", nameof(request.SourceType));
+            throw new BadRequestException($"SourceType '{request.SourceType}' is invalid. {nameof(request.SourceType)}"  );
         }
 
         var analysis = await _aiService.AnalyzeAsync(request.RawText.Trim(), cancellationToken);
@@ -101,7 +102,7 @@ public class EmotionService : IEmotionService
     {
         if (emotionEntryId == Guid.Empty)
         {
-            throw new ArgumentException("EmotionEntryId is required.", nameof(emotionEntryId));
+            throw new BadRequestException($"EmotionEntryId is required. {nameof(emotionEntryId)}");
         }
 
         var emotionEntry = await _unitOfWork.EmotionRepository.GetByIdAsync(emotionEntryId, cancellationToken);
@@ -112,7 +113,7 @@ public class EmotionService : IEmotionService
     {
         if (userId == Guid.Empty)
         {
-            throw new ArgumentException("UserId is required.", nameof(userId));
+            throw new BadRequestException($"UserId is required. {nameof(userId)}" );
         }
 
         var emotionEntries = await _unitOfWork.EmotionRepository.GetByUserIdAsync(userId, cancellationToken);

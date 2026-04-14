@@ -1,4 +1,5 @@
 using Application.DTOs.AI;
+using Application.Exceptions;
 using Application.Interfaces.Common;
 using Infracstructure.AI;
 using Microsoft.Extensions.Options;
@@ -29,7 +30,7 @@ public class AiService : IAiService
         await EnsureSuccessAsync(response, cancellationToken);
 
         var result = await response.Content.ReadFromJsonAsync<AnalyzeResponseDto>(cancellationToken: cancellationToken);
-        return result ?? throw new InvalidOperationException("AI service returned empty analyze response.");
+        return result ?? throw new ExternalServiceException("AI service returned empty analyze response.");
     }
 
     public async Task<EmbeddingResponseDto> GenerateEmbeddingAsync(string text, CancellationToken cancellationToken = default)
@@ -44,7 +45,7 @@ public class AiService : IAiService
         await EnsureSuccessAsync(response, cancellationToken);
 
         var result = await response.Content.ReadFromJsonAsync<EmbeddingResponseDto>(cancellationToken: cancellationToken);
-        return result ?? throw new InvalidOperationException("AI service returned empty embedding response.");
+        return result ?? throw new ExternalServiceException("AI service returned empty embedding response.");
     }
 
     public async Task<EmotionDetectionResponseDto> DetectEmotionAsync(string text, CancellationToken cancellationToken = default)
@@ -59,14 +60,14 @@ public class AiService : IAiService
         await EnsureSuccessAsync(response, cancellationToken);
 
         var result = await response.Content.ReadFromJsonAsync<EmotionDetectionResponseDto>(cancellationToken: cancellationToken);
-        return result ?? throw new InvalidOperationException("AI service returned empty emotion response.");
+        return result ?? throw new ExternalServiceException("AI service returned empty emotion response.");
     }
 
     private static void ValidateText(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            throw new ArgumentException("Text is required.", nameof(text));
+            throw new BadRequestException($"Text is required. {nameof(text)}");
         }
     }
 
@@ -78,7 +79,6 @@ public class AiService : IAiService
         }
 
         var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
-        throw new HttpRequestException(
-            $"AI service request failed. Status: {(int)response.StatusCode}. Response: {errorBody}");
+        throw new ExternalServiceException($"AI service request failed. Status: {(int)response.StatusCode}. Response: {errorBody}");
     }
 }

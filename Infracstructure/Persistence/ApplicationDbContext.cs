@@ -23,6 +23,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<MatchingCandidate> MatchingCandidates => Set<MatchingCandidate>();
     public DbSet<Reflection> Reflections => Set<Reflection>();
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("vector");

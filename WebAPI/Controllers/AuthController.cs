@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using System.Text.Json;                    // ← fix lỗi JsonSerializer
 using Application.DTOs.Auth;
 using Application.Interfaces.IServices;
@@ -35,6 +35,8 @@ public class AuthController : ControllerBase
         {
             return Conflict(new { message = ex.Message });
         }
+        var response = await _authService.RegisterAsync(request, cancellationToken);
+        return Ok(response);
     }
 
     [HttpPost("login")]
@@ -59,6 +61,8 @@ public class AuthController : ControllerBase
         {
             return Unauthorized(new { message = ex.Message });
         }
+        var response = await _authService.LoginAsync(request, cancellationToken);
+        return Ok(response);
     }
 
     [HttpGet("google-login")]

@@ -1,4 +1,5 @@
 using Application.DTOs.Auth;
+using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.IServices;
 using Domain.Entities;
@@ -30,12 +31,12 @@ public class AuthService : IAuthService
 
         if (await _unitOfWork.AuthRepository.EmailExistsAsync(normalizedEmail, cancellationToken))
         {
-            throw new InvalidOperationException("Email is already in use.");
+            throw new ConflictException("Email is already in use.");
         }
 
         if (await _unitOfWork.AuthRepository.UsernameExistsAsync(normalizedUsername, cancellationToken))
         {
-            throw new InvalidOperationException("Username is already in use.");
+            throw new ConflictException("Username is already in use.");
         }
 
         var user = new User
@@ -61,13 +62,13 @@ public class AuthService : IAuthService
 
         if (user is null)
         {
-            throw new UnauthorizedAccessException("Invalid credentials.");
+            throw new UnauthorizeException("Invalid credentials.");
         }
 
         var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
         if (verificationResult == PasswordVerificationResult.Failed)
         {
-            throw new UnauthorizedAccessException("Invalid credentials.");
+            throw new UnauthorizeException("Invalid credentials.");
         }
 
         return BuildAuthResponse(user);
