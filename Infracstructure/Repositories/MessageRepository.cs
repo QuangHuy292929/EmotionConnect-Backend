@@ -35,4 +35,38 @@ public class MessageRepository : IMessageRepository
             .OrderBy(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<int> GetCountByRoomIdAsync(Guid roomId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Messages
+            .CountAsync(x => x.RoomId == roomId, cancellationToken);
+    }
+
+    public async Task<List<Message>> GetPagedByRoomIdAsync(Guid roomId, int skip, int take, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Messages
+            .Include(x => x.Sender)
+            .Where(x => x.RoomId == roomId)
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<Message>> SearchByRoomIdAsync(Guid roomId, string keyword, int skip, int take, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Messages
+            .Include(x => x.Sender)
+            .Where(x => x.RoomId == roomId && x.Content.Contains(keyword))
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
+    public async Task<int> CountSearchByRoomIdAsync(Guid roomId, string keyword, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Messages
+            .Where(x => x.RoomId == roomId && x.Content.Contains(keyword))
+            .CountAsync(cancellationToken);
+    }
 }

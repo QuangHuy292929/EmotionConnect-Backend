@@ -27,10 +27,34 @@ public class MessageController : ControllerBase
     }
 
     [HttpGet("room/{roomId:guid}")]
-    public async Task<ActionResult<List<MessageDto>>> GetByRoomId(Guid roomId, CancellationToken ct)
+    public async Task<ActionResult<PagedResult<MessageDto>>> GetByRoomId(Guid roomId, [FromQuery]int pageNumber, [FromQuery]int pageSize, CancellationToken ct)
     {
         var userId = User.GetCurrentUserId();
-        var result = await _messageService.GetRoomMessagesAsync(roomId, userId, ct);
+        var result = await _messageService.GetRoomMessagesAsync(roomId, userId, pageNumber, pageSize, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("{messageId:guid}")]
+    public async Task<ActionResult<MessageDto>> GetById(Guid messageId, CancellationToken ct)
+    {
+        var userId = User.GetCurrentUserId();
+        var result = await _messageService.GetByIdAsync(messageId, userId, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("room/{roomId:guid}/search")]
+    public async Task<ActionResult<PagedResult<MessageDto>>> SearchByRoomId(Guid roomId, [FromQuery]string keyword, [FromQuery]int pageNumber, [FromQuery]int pageSize, CancellationToken ct)
+    {
+        var userId = User.GetCurrentUserId();
+        var result = await _messageService.SearchRoomMessagesAsync(roomId, userId, keyword, pageNumber, pageSize, ct);
+        return Ok(result);
+    }
+
+    [HttpPut("{messageId:guid}")]
+    public async Task<ActionResult<MessageDto>> EditMessage(Guid messageId, EditMessageRequest request, CancellationToken ct)
+    {
+        var userId = User.GetCurrentUserId();
+        var result = await _messageService.EditAsync(messageId, request, userId, ct);
         return Ok(result);
     }
 

@@ -26,43 +26,25 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
-        try
-        {
-            var response = await _authService.RegisterAsync(request, cancellationToken);
-            return Ok(new { data = response, message = "success" }); // ← fix Ok() 1 argument
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { message = ex.Message });
-        }
         var response = await _authService.RegisterAsync(request, cancellationToken);
-        return Ok(response);
+        return Ok(new { data = response, message = "success" }); // ← fix Ok() 1 argument
     }
 
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
     {
-        try
-        {
-            var response = await _authService.LoginAsync(request, cancellationToken);
-
-            Response.Cookies.Append("token", response.AccessToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = false,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddHours(1)
-            });
-
-            return Ok(new { data = response, message = "success" });
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
         var response = await _authService.LoginAsync(request, cancellationToken);
-        return Ok(response);
+
+        Response.Cookies.Append("token", response.AccessToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddHours(1)
+        });
+
+        return Ok(new { data = response, message = "success" });
     }
 
     [HttpGet("google-login")]

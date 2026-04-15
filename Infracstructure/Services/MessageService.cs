@@ -34,9 +34,45 @@ namespace Infracstructure.Services
             await _unitOfWork.SaveChangeAsync(cancellationToken);
         }
 
-        public async Task<List<MessageDto>> GetRoomMessagesAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default)
+        public async Task<MessageDto> EditAsync(Guid messageId, EditMessageRequest request, Guid userId, CancellationToken cancellationToken = default)
+        {
+            var message = await _unitOfWork.MessageRepository.GetByIdAsync(messageId, cancellationToken);
+            if (message is null) throw new NotFoundException($"Message with id {messageId} not found");
+
+            if (message.SenderId != userId) throw new ForbiddenException("User is not the sender of the message");
+
+            if (string.IsNullOrWhiteSpace(request.Content)) throw new BadRequestException("Content cannot be empty");
+
+            if (message.DeletedAt.HasValue) throw new BadRequestException("Cannot edit a deleted message");
+
+            message.Content = request.Content;
+            message.EditedAt = DateTime.UtcNow;
+            await _unitOfWork.SaveChangeAsync(cancellationToken);
+
+            return message.ToDto();
+        }
+
+        public async Task<MessageDto?> GetByIdAsync(Guid messageId, Guid userId, CancellationToken cancellationToken = default)
+        {
+            var message = await _unitOfWork.MessageRepository.GetByIdAsync(messageId, cancellationToken);
+            if (message is null) throw new NotFoundException($"Message with id {messageId} not found");
+
+            var isMember = await _unitOfWork.RoomRepository.IsUserInRoomAsync(message.RoomId, userId, cancellationToken);
+            if (!isMember) throw new ForbiddenException("User is not a member of the room");
+
+            return message.ToDto();
+        }
+
+        public async Task<PagedResult<MessageDto>> GetRoomMessagesAsync(Guid roomId, Guid userId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
         {
             if (roomId == Guid.Empty) throw new BadRequestException($"Room Id is requried. {nameof(roomId)}");
+
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 20;
+            if (pageSize > 100) pageSize = 100;
+
+            int skip = (pageNumber - 1) * pageSize;
+            int take = pageSize;
 
             var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId, cancellationToken);
             if (room is null) throw new NotFoundException($"Not found any room. {nameof(roomId)}");
@@ -44,8 +80,32 @@ namespace Infracstructure.Services
             var isMember = await _unitOfWork.RoomRepository.IsUserInRoomAsync(roomId, userId, cancellationToken);
             if (!isMember) throw new ForbiddenException("User is not a member of the room");
 
-            var messages = await _unitOfWork.MessageRepository.GetByRoomIdAsync(roomId, cancellationToken);
-            return messages.Select(m => m.ToDto()).ToList();
+            var messages = await _unitOfWork.MessageRepository.GetPagedByRoomIdAsync(roomId, skip, take, cancellationToken);
+            var totalCount = await _unitOfWork.MessageRepository.GetCountByRoomIdAsync(roomId, cancellationToken);
+            var pagedResult = messages.Select(m => m.ToDto()).ToList();
+            return new PagedResult<MessageDto>{ Items = pagedResult, PageNumber = pageNumber, PageSize = pageSize, TotalCount = totalCount };
+        }
+
+        public async Task<PagedResult<MessageDto>> SearchRoomMessagesAsync(Guid roomId, Guid userId, string keyword, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+        {
+            var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId, cancellationToken);
+            if (room is null) throw new NotFoundException($"Not found any room. {nameof(roomId)}");
+
+            var isMember = await _unitOfWork.RoomRepository.IsUserInRoomAsync(roomId, userId, cancellationToken);
+            if (!isMember) throw new ForbiddenException("User is not a member of the room");
+
+            if (string.IsNullOrWhiteSpace(keyword)) throw new BadRequestException("Keyword cannot be empty");
+
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 20;
+            if (pageSize > 100) pageSize = 100;
+
+            int skip = (pageNumber - 1) * pageSize;
+            int take = pageSize;
+
+            var messages = await _unitOfWork.MessageRepository.SearchByRoomIdAsync(roomId, keyword.Normalize(), skip, take, cancellationToken);
+            var totalCount = await _unitOfWork.MessageRepository.CountSearchByRoomIdAsync(roomId, keyword, cancellationToken);
+            return new PagedResult<MessageDto>{ Items = messages.Select(m => m.ToDto()).ToList(), PageNumber = pageNumber, PageSize = pageSize, TotalCount = totalCount };
         }
 
         public async Task<MessageDto> SendAsync(SendMessageRequest request, Guid senderId, CancellationToken cancellationToken = default)
@@ -86,6 +146,11 @@ namespace Infracstructure.Services
 
             var createdMessage = await _unitOfWork.MessageRepository.GetByIdAsync(message.Id, cancellationToken);
             return (createdMessage ??  message).ToDto();
+        }
+
+        public async Task<bool> IsUserInRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default)
+        {
+            return await _unitOfWork.RoomRepository.IsUserInRoomAsync(roomId, userId, cancellationToken);
         }
     }
 }

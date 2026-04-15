@@ -14,5 +14,6 @@ namespace Application.Interfaces.IServices
         Task<List<RoomDto>> GetMyRoomsAsync(Guid userId, CancellationToken cancellationToken = default);
         Task JoinRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default);
         Task LeaveRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default);
+        Task<bool> IsUserInRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default);
     }
 }

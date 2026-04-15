@@ -98,6 +98,11 @@ public class RoomService : IRoomService
         return rooms.ToDtoList();
     }
 
+    public async Task<bool> IsUserInRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _unitOfWork.RoomRepository.IsUserInRoomAsync(roomId, userId, cancellationToken);
+    }
+
     public async Task JoinRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default)
     {
         var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId, cancellationToken);
@@ -148,4 +153,6 @@ public class RoomService : IRoomService
         await _unitOfWork.RoomRepository.RemoveMemberAsync(member, cancellationToken);
         await _unitOfWork.SaveChangeAsync(cancellationToken);
     }
+
+
 }

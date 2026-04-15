@@ -1,3 +1,4 @@
+using DotNetEnv;
 using Infracstructure;
 using Infracstructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -6,6 +7,8 @@ using Microsoft.OpenApi;
 using System.Text;
 using WebAPI.Hubs;
 using WebAPI.Middlewares;
+
+Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -98,6 +101,8 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
+app.UseMiddleware<UserActivityMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthorization();
 app.MapHub<PresenceHub>("/hubs/presence");
 app.MapHub<ChatHub>("/hubs/chat");

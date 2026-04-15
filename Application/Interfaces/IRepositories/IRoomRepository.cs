@@ -15,5 +15,6 @@ namespace Application.Interfaces.IRepositories
         Task AddAsync(Room room, CancellationToken ct = default);
         Task AddMemberAsync(RoomMember roomMember, CancellationToken ct = default);
         Task RemoveMemberAsync(RoomMember roomMember, CancellationToken ct = default);
+        Task<Room?> GetAiRoomByUserIdAsync(Guid userId, CancellationToken ct = default);
     }
 }

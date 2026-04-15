@@ -1,4 +1,6 @@
 ﻿using Application.DTOs.Message;
+using Application.Exceptions;
+using Application.Interfaces;
 using Application.Interfaces.IServices;
 using Infracstructure.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -10,13 +12,20 @@ namespace WebAPI.Hubs;
 public class ChatHub : Hub
 {
     private readonly IMessageService _messageService;
-    public ChatHub(IMessageService messageService)
+    private readonly IRoomService _roomService;
+    public ChatHub(IMessageService messageService, IRoomService roomService)
     {
         _messageService = messageService;
+        _roomService = roomService;
     }
 
     public async Task JoinRoom(Guid roomId)
     {
+        var userId = Context.User?.GetCurrentUserId() ?? Guid.Empty;
+        var isMember = await _roomService.IsUserInRoomAsync(roomId, userId, Context.ConnectionAborted);
+        if (!isMember) {
+            throw new UnauthorizeException("User is not a member of the room.");
+        }
         var groupName = GetRoomGroupName(roomId);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
     }

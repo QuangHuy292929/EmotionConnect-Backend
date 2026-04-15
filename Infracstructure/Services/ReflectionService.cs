@@ -21,6 +21,7 @@ namespace Infracstructure.Services
         {
             if (request == null) throw new BadRequestException($"Request is not allow null here. {nameof(request)}");
             if (request.RoomId == Guid.Empty) throw new BadRequestException($"RoomId is not allow empty here. {nameof(request.RoomId)}");
+            if (string.IsNullOrEmpty(request.Content)) throw new BadRequestException($"Content is not allow null or empty here. {nameof(request.Content)}");
 
             var room = await _unitOfWork.RoomRepository.GetByIdAsync(request.RoomId, cancellationToken);
             if (room == null) throw new NotFoundException($"Room with id {request.RoomId} is not exist.");
