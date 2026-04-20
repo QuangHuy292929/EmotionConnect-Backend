@@ -63,6 +63,49 @@ public class AiService : IAiService
         return result ?? throw new ExternalServiceException("AI service returned empty emotion response.");
     }
 
+    public async Task<RewriteSummaryResponseDto> RewriteSummaryAsync(RewriteSummaryRequestDto request, CancellationToken ct = default)
+    {
+        if(request is null)
+        {
+            throw new BadRequestException("Request is required");
+        }
+
+        ValidateText(request.Text);
+
+        var response = await _httpClient.PostAsJsonAsync("/api/rewrite-summary", new
+        {
+            text = request.Text.Trim()
+        }, ct);
+
+        await EnsureSuccessAsync(response, ct);
+
+        var result = await response.Content.ReadFromJsonAsync<RewriteSummaryResponseDto>(ct);
+        return result ?? throw new ExternalServiceException("AI service returned empty rewrite-summary response");
+    }
+
+    public async Task<ClarifySummaryResponseDto> ClarifySummaryAsync(ClarifySummaryRequestDto request, CancellationToken ct = default)
+    {
+        if(request is null)
+        {
+            throw new BadRequestException("request is required");
+        }
+
+        ValidateText(request.EmotionAnswer);
+        ValidateText(request.IssueAnswer);
+        ValidateText(request.DeepDiveAnswer);
+
+        var response = await _httpClient.PostAsJsonAsync("/api/clarify-summary", new {
+            emotionAnswer = request.EmotionAnswer.Trim(),
+            issueAnswer = request.IssueAnswer.Trim(),
+            deepDiveAnswer = request.DeepDiveAnswer.Trim()
+        }, ct);
+
+        await EnsureSuccessAsync(response, ct);
+
+        var result = await response.Content.ReadFromJsonAsync<ClarifySummaryResponseDto>(ct);
+        return result ?? throw new ExternalServiceException("AI service returned empty clarify-summary response");
+    }
+
     private static void ValidateText(string text)
     {
         if (string.IsNullOrWhiteSpace(text))

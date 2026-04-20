@@ -22,6 +22,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<MatchingRequest> MatchingRequests => Set<MatchingRequest>();
     public DbSet<MatchingCandidate> MatchingCandidates => Set<MatchingCandidate>();
     public DbSet<Reflection> Reflections => Set<Reflection>();
+    public DbSet<CheckInSession> CheckInSessions => Set<CheckInSession>();
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

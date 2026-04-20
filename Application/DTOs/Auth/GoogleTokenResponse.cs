@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text.Json.Serialization;
 
 namespace Application.DTOs.Auth
 {
     public class GoogleTokenResponse
     {
-        [System.Text.Json.Serialization.JsonPropertyName("access_token")]
+        [JsonPropertyName("access_token")]
         public string AccessToken { get; set; } = string.Empty;
     }
 }

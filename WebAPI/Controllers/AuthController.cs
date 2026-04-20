@@ -14,12 +14,12 @@ namespace WebAPI.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly IConfiguration _config; // ← thêm
+    private readonly IConfiguration _config;
 
-    public AuthController(IAuthService authService, IConfiguration config) // ← thêm config
+    public AuthController(IAuthService authService, IConfiguration config) 
     {
         _authService = authService;
-        _config = config; // ← thêm
+        _config = config; 
     }
 
     [HttpPost("register")]
@@ -27,7 +27,7 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
         var response = await _authService.RegisterAsync(request, cancellationToken);
-        return Ok(new { data = response, message = "success" }); // ← fix Ok() 1 argument
+        return Ok(new { data = response, message = "success" }); 
     }
 
     [HttpPost("login")]
@@ -84,7 +84,6 @@ public class AuthController : ControllerBase
                 Expires = DateTimeOffset.UtcNow.AddHours(1)
             });
 
-            // ← xóa dòng frontendUrl thừa đi
             return Redirect("http://localhost:5174/auth/callback");
         }
         catch (Exception ex)

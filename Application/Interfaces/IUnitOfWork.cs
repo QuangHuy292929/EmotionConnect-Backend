@@ -14,6 +14,7 @@ namespace Application.Interfaces
         IMessageRepository MessageRepository { get; }
         IReflectionRepository ReflectionRepository { get; }
         IEmotionRepository EmotionRepository { get; }
+        ICheckInSessionRepository CheckInSessionRepository { get; }
 
         Task<int> SaveChangeAsync(CancellationToken ct = default);
         Task BeginTransactionAsync();

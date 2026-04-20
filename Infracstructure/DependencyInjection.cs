@@ -73,17 +73,19 @@ public static class DependencyInjection
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IReflectionRepository, ReflectionRepository>();
         services.AddScoped<IEmotionRepository, EmotionRepository>();
+        services.AddScoped<ICheckInSessionRepository, CheckInSessionRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICommunityService, CommunityService>();
         services.AddScoped<IRoomService, RoomService>();
-      //  services.AddScoped<IMatchingService, MatchingService>();
+        services.AddScoped<IMatchingService, MatchingService>();
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IReflectionService, ReflectionService>();
         services.AddScoped<IEmotionService, EmotionService>();
         services.AddScoped<IUserPresenceService, UserPresenceService>();
+        services.AddScoped<ICheckInSessionService, CheckInSessionService>();
 
         return services;
     }

@@ -74,4 +74,9 @@ public class RoomRepository : IRoomRepository
         _dbContext.RoomMembers.Remove(roomMember);
         return Task.CompletedTask;
     }
+
+    public Task<Room?> GetAiRoomByUserIdAsync(Guid userId, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
+    }
 }

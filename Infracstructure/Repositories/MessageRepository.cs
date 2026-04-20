@@ -69,4 +69,9 @@ public class MessageRepository : IMessageRepository
             .Where(x => x.RoomId == roomId && x.Content.Contains(keyword))
             .CountAsync(cancellationToken);
     }
+
+    public Task<List<Message>> GetRecentByRoomIdAsync(Guid roomId, int take, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }

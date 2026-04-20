@@ -1,5 +1,9 @@
+using Application.Exceptions;
+using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
+
 
 namespace Infracstructure.Persistence;
 
@@ -7,10 +11,9 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
 {
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        var connectionString =
-            Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-            ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION")
-            ?? "Host=localhost;Port=5433;Database=emotion_db;Username=postgres;Password=12345";
+        Env.TraversePath().Load();
+
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") ?? throw new ConflictException("Connection string 'DefaultConnection' was not found.");
 
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         optionsBuilder.UseNpgsql(connectionString, options =>

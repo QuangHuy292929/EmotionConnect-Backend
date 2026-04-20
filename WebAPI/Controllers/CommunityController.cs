@@ -39,6 +39,8 @@ public class CommunityController : ControllerBase
         return Ok(community);
     }
 
+    
+
     [HttpGet("my")]
     public async Task<ActionResult<List<CommunityDto>>> GetMyCommunities(CancellationToken cancellationToken)
     {

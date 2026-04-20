@@ -18,7 +18,9 @@ public class UnitOfWork : IUnitOfWork
         IMatchingRepository matchingRepository,
         IMessageRepository messageRepository,
         IReflectionRepository reflectionRepository,
-        IEmotionRepository emotionRepository)
+        IEmotionRepository emotionRepository,
+        ICheckInSessionRepository checkInSessionRepository
+        )
     {
         _dbContext = dbContext;
         AuthRepository = authRepository;
@@ -28,6 +30,7 @@ public class UnitOfWork : IUnitOfWork
         MessageRepository = messageRepository;
         ReflectionRepository = reflectionRepository;
         EmotionRepository = emotionRepository;
+        CheckInSessionRepository = checkInSessionRepository;
     }
 
     public IAuthRepository AuthRepository { get; }
@@ -37,6 +40,7 @@ public class UnitOfWork : IUnitOfWork
     public IMessageRepository MessageRepository { get; }
     public IReflectionRepository ReflectionRepository { get; }
     public IEmotionRepository EmotionRepository { get; }
+    public ICheckInSessionRepository CheckInSessionRepository { get; }
 
     public Task<int> SaveChangeAsync(CancellationToken ct = default)
     {
