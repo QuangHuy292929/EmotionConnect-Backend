@@ -1,11 +1,8 @@
-using System.Security.Claims;
-using System.Text.Json;                    // ← fix lỗi JsonSerializer
 using Application.DTOs.Auth;
 using Application.Interfaces.IServices;
 using Infracstructure.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration; // ← fix lỗi _config
 
 namespace WebAPI.Controllers;
 
@@ -15,11 +12,16 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IConfiguration _config;
+    private readonly IWebHostEnvironment _environment;
 
-    public AuthController(IAuthService authService, IConfiguration config) 
+    public AuthController(
+        IAuthService authService,
+        IConfiguration config,
+        IWebHostEnvironment environment)
     {
         _authService = authService;
-        _config = config; 
+        _config = config;
+        _environment = environment;
     }
 
     [HttpPost("register")]
@@ -27,7 +29,7 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
         var response = await _authService.RegisterAsync(request, cancellationToken);
-        return Ok(new { data = response, message = "success" }); 
+        return Ok(new { data = response, message = "success" });
     }
 
     [HttpPost("login")]
@@ -35,14 +37,7 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
     {
         var response = await _authService.LoginAsync(request, cancellationToken);
-
-        Response.Cookies.Append("token", response.AccessToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = false,
-            SameSite = SameSiteMode.Lax,
-            Expires = DateTimeOffset.UtcNow.AddHours(1)
-        });
+        AppendAuthCookie(response.AccessToken, response.ExpiresAtUtc);
 
         return Ok(new { data = response, message = "success" });
     }
@@ -53,7 +48,16 @@ public class AuthController : ControllerBase
     {
         var clientId = _config["Google:ClientId"];
         var redirectUri = _config["Google:RedirectUri"];
-        var state = Guid.NewGuid().ToString();
+        var state = Guid.NewGuid().ToString("N");
+
+        Response.Cookies.Append("google_oauth_state", state, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !_environment.IsDevelopment(),
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(5),
+            IsEssential = true
+        });
 
         var url = "https://accounts.google.com/o/oauth2/v2/auth" +
                   $"?client_id={clientId}" +
@@ -68,21 +72,22 @@ public class AuthController : ControllerBase
     [HttpGet("google-callback")]
     [AllowAnonymous]
     public async Task<IActionResult> GoogleCallback(
-    [FromQuery] string code,
-    [FromQuery] string state,
-    CancellationToken cancellationToken)
+        [FromQuery] string code,
+        [FromQuery] string state,
+        CancellationToken cancellationToken)
     {
         try
         {
-            var response = await _authService.GoogleLoginAsync(code, cancellationToken);
-
-            Response.Cookies.Append("token", response.AccessToken, new CookieOptions
+            var expectedState = Request.Cookies["google_oauth_state"];
+            if (string.IsNullOrWhiteSpace(expectedState) || expectedState != state)
             {
-                HttpOnly = true,
-                Secure = false,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddHours(1)
-            });
+                return Unauthorized(new { message = "Invalid OAuth state." });
+            }
+
+            Response.Cookies.Delete("google_oauth_state");
+
+            var response = await _authService.GoogleLoginAsync(code, cancellationToken);
+            AppendAuthCookie(response.AccessToken, response.ExpiresAtUtc);
 
             return Redirect("http://localhost:5174/auth/callback");
         }
@@ -100,7 +105,9 @@ public class AuthController : ControllerBase
         var user = await _authService.GetCurrentUserAsync(userId, cancellationToken);
 
         if (user is null)
+        {
             return NotFound(new { message = "User not found." });
+        }
 
         return Ok(user);
     }
@@ -110,6 +117,19 @@ public class AuthController : ControllerBase
     public IActionResult Logout()
     {
         Response.Cookies.Delete("token");
+        Response.Cookies.Delete("google_oauth_state");
         return Ok(new { message = "Logged out" });
+    }
+
+    private void AppendAuthCookie(string token, DateTime expiresAtUtc)
+    {
+        Response.Cookies.Append("token", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !_environment.IsDevelopment(),
+            SameSite = SameSiteMode.Lax,
+            Expires = new DateTimeOffset(expiresAtUtc),
+            IsEssential = true
+        });
     }
 }

@@ -59,12 +59,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
-                var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
+                var accessToken = context.Request.Query["access_token"];
 
                 if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/hubs/presence") || path.StartsWithSegments("/hubs/chat")))
                 {
                     context.Token = accessToken;
+                    return Task.CompletedTask;
+                }
+
+                var cookieToken = context.Request.Cookies["token"];
+                if (!string.IsNullOrWhiteSpace(cookieToken))
+                {
+                    context.Token = cookieToken;
                 }
 
                 return Task.CompletedTask;

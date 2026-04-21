@@ -157,7 +157,7 @@ public class AuthService : IAuthService
             };
             await _unitOfWork.AuthRepository.AddAsync(user, cancellationToken);
         }
-        else if (user.GoogleId is null)
+        else if (string.IsNullOrWhiteSpace(user.GoogleId))
         {
             // ── Bước 4b: Link Google vào account email cũ ──
             user.GoogleId = userInfo.Sub;
