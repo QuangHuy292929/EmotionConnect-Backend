@@ -44,13 +44,13 @@ public class CheckInSessionService : ICheckInSessionService
      */
     public async Task<CheckInCompletedDto> ConfirmAsync(Guid sessionId, Guid userId, ConfirmCheckInRequest request, CancellationToken ct = default)
     {
-        if(request is null)
+        if (request is null)
         {
             throw new BadRequestException("request is required");
         }
 
         var session = await GetOwnedSessionAsync(sessionId, userId, ct);
-        if(session.Status is not CheckInStatus.AwaitingConfirmation)
+        if (session.Status is not CheckInStatus.AwaitingConfirmation)
         {
             throw new ConflictException("this session is not awaiting confirmation");
         }
@@ -85,13 +85,13 @@ public class CheckInSessionService : ICheckInSessionService
             EmotionLabel = x.Label,
             Score = Convert.ToDecimal(x.Score)
         }).ToList();
-       
-        if(emotionScores.Count > 0)
+
+        if (emotionScores.Count > 0)
         {
             await _unitOfWork.EmotionRepository.AddEmotionScoresAsync(emotionScores, ct);
         }
 
-        if(analysis.Vector.Count > 0)
+        if (analysis.Vector.Count > 0)
         {
             var embedding = new TextEmbedding
             {
@@ -132,7 +132,20 @@ public class CheckInSessionService : ICheckInSessionService
     public async Task<CheckInSessionDto?> GetActiveSessionAsync(Guid userId, CancellationToken ct = default)
     {
         var activeSession = await _unitOfWork.CheckInSessionRepository.GetActiveByUserIdAsync(userId, ct);
-        return activeSession?.ToDto();
+        return activeSession is null
+            ? null
+            : MapSessionForConversationHydration(activeSession);
+    }
+
+    public async Task<CheckInSessionDto?> GetBySessionId(Guid sessionId, CancellationToken ct = default)
+    {
+        if(sessionId == Guid.Empty)
+        {
+            throw new BadRequestException("Session Id is required here");
+        }
+
+        var session = await _unitOfWork.CheckInSessionRepository.GetByIdAsync(sessionId, ct);
+        return session is null ? null : MapSessionForConversationHydration(session);
     }
 
     public async Task<CheckInStartResponseDto> StartAsync(Guid userId, StartCheckInRequest request, CancellationToken ct = default)
@@ -152,10 +165,10 @@ public class CheckInSessionService : ICheckInSessionService
 
         var session = new CheckInSession
         {
-           UserId = userId,
-           InputMode = inputMode,
-           Status = CheckInStatus.Started,
-           CurrentStep = CheckInStep.Step1Emotion
+            UserId = userId,
+            InputMode = inputMode,
+            Status = CheckInStatus.Started,
+            CurrentStep = CheckInStep.Step1Emotion
         };
 
         await _unitOfWork.CheckInSessionRepository.AddAsync(session, ct);
@@ -170,7 +183,7 @@ public class CheckInSessionService : ICheckInSessionService
         if (string.IsNullOrEmpty(request.Content)) throw new BadRequestException("Content is required");
 
         var session = await GetOwnedSessionAsync(sessionId, userId, ct);
-        if(session.Status is CheckInStatus.Completed or CheckInStatus.Cancelled)
+        if (session.Status is CheckInStatus.Completed or CheckInStatus.Cancelled)
         {
             throw new ConflictException("This check in session is no longer editable");
         }
@@ -201,7 +214,7 @@ public class CheckInSessionService : ICheckInSessionService
 
         await _unitOfWork.SaveChangeAsync(ct);
 
-        if(session.Status  is CheckInStatus.AwaitingConfirmation)
+        if (session.Status is CheckInStatus.AwaitingConfirmation)
         {
             return session.ToStepResponseDto();
         }
@@ -209,15 +222,80 @@ public class CheckInSessionService : ICheckInSessionService
         return session.ToStepResponseDto(GetQuestionForStep(session.CurrentStep));
     }
 
+    public async Task<List<CheckInSessionDto>> GetMySessions(Guid userId, CancellationToken ct = default)
+    {
+        var result = await _unitOfWork.CheckInSessionRepository.GetMySessions(userId, ct);
+        return result
+            .Select(MapSessionForConversationHydration)
+            .ToList();
+    }
+
+
+    private CheckInSessionDto MapSessionForConversationHydration(CheckInSession session)
+    {
+        return session.ToDto(
+            currentQuestion: GetCurrentQuestion(session),
+            emotionQuestion: ShouldIncludeEmotionQuestion(session) ? GetQuestionForStep(CheckInStep.Step1Emotion) : null,
+            issueQuestion: ShouldIncludeIssueQuestion(session) ? GetQuestionForStep(CheckInStep.Step2MainIssue) : null,
+            deepDiveQuestion: ShouldIncludeDeepDiveQuestion(session) ? GetQuestionForStep(CheckInStep.Step3DeepDive) : null,
+            reviewQuestion: ShouldIncludeReviewQuestion(session) ? GetReviewQuestion() : null);
+    }
+
     private static string GetQuestionForStep(CheckInStep step)
     {
         return step switch
         {
-            CheckInStep.Step1Emotion => "Lúc này bạn đang cảm thấy thế nào?",
-            CheckInStep.Step2MainIssue => "Điều gì đang khiến bạn bận tâm nhất lúc này?",
-            CheckInStep.Step3DeepDive => "Điều gì trong chuyện đó khiến bạn thấy nặng nề nhất?",
+            CheckInStep.Step1Emotion => "Lúc này bạn đang cảm thấy như thế nào, hoặc điều gì đang nổi bật nhất với bạn?",
+            CheckInStep.Step2MainIssue => "Có điều gì, sự kiện nào hoặc trải nghiệm nào đang ảnh hưởng bạn nhiều nhất lúc này?",
+            CheckInStep.Step3DeepDive => "Nếu chia sẻ thêm một chút, phần nào của trải nghiệm đó đang để lại dấu ấn rõ nhất với bạn?",
             _ => string.Empty
         };
+    }
+
+    private static string GetReviewQuestion()
+    {
+        return "Mình đã tóm tắt lại như trên. Bạn thấy nội dung này đã phản ánh đúng điều mình muốn chia sẻ chưa?";
+    }
+
+    private static string? GetCurrentQuestion(CheckInSession session)
+    {
+        if (session.Status == CheckInStatus.AwaitingConfirmation)
+        {
+            return GetReviewQuestion();
+        }
+
+        if (session.Status is CheckInStatus.Completed or CheckInStatus.Cancelled)
+        {
+            return null;
+        }
+
+        return GetQuestionForStep(session.CurrentStep);
+    }
+
+    private static bool ShouldIncludeEmotionQuestion(CheckInSession session)
+    {
+        return !string.IsNullOrWhiteSpace(session.EmotionAnswer)
+            || session.CurrentStep != CheckInStep.Step1Emotion
+            || session.Status != CheckInStatus.Started;
+    }
+
+    private static bool ShouldIncludeIssueQuestion(CheckInSession session)
+    {
+        return !string.IsNullOrWhiteSpace(session.IssueAnswer)
+            || session.CurrentStep == CheckInStep.Step3DeepDive
+            || session.Status is CheckInStatus.AwaitingConfirmation or CheckInStatus.Completed;
+    }
+
+    private static bool ShouldIncludeDeepDiveQuestion(CheckInSession session)
+    {
+        return !string.IsNullOrWhiteSpace(session.DeepDiveAnswer)
+            || session.Status is CheckInStatus.AwaitingConfirmation or CheckInStatus.Completed;
+    }
+
+    private static bool ShouldIncludeReviewQuestion(CheckInSession session)
+    {
+        return session.Status is CheckInStatus.AwaitingConfirmation or CheckInStatus.Completed
+            || !string.IsNullOrWhiteSpace(session.GeneratedSummary);
     }
 
     private async Task<CheckInSession> GetOwnedSessionAsync(
@@ -244,32 +322,7 @@ public class CheckInSessionService : ICheckInSessionService
 
         try
         {
-            var clarified = await _aiService.ClarifySummaryAsync(
-                new ClarifySummaryRequestDto
-                {
-                    EmotionAnswer = session.EmotionAnswer ?? string.Empty,
-                    IssueAnswer = session.IssueAnswer ?? string.Empty,
-                    DeepDiveAnswer = session.DeepDiveAnswer ?? string.Empty
-                },
-                cancellationToken);
-
-            var textToRewrite = string.IsNullOrWhiteSpace(clarified.ClarifiedSummary)
-                ? rawSummary
-                : clarified.ClarifiedSummary.Trim();
-
-            var rewritten = await _aiService.RewriteSummaryAsync(
-                new RewriteSummaryRequestDto
-                {
-                    Text = textToRewrite
-                },
-                cancellationToken);
-
-            if (!string.IsNullOrWhiteSpace(rewritten.RewrittenText))
-            {
-                return rewritten.RewrittenText.Trim();
-            }
-
-            return textToRewrite;
+            return await ClarifySummaryAsync(session, rawSummary, cancellationToken);
         }
         catch (ExternalServiceException)
         {
@@ -277,14 +330,52 @@ public class CheckInSessionService : ICheckInSessionService
         }
     }
 
+    private async Task<string> ClarifySummaryAsync(
+        CheckInSession session,
+        string fallbackSummary,
+        CancellationToken cancellationToken)
+    {
+        var clarified = await _aiService.ClarifySummaryAsync(
+            new ClarifySummaryRequestDto
+            {
+                EmotionAnswer = session.EmotionAnswer ?? string.Empty,
+                IssueAnswer = session.IssueAnswer ?? string.Empty,
+                DeepDiveAnswer = session.DeepDiveAnswer ?? string.Empty
+            },
+            cancellationToken);
+
+        return string.IsNullOrWhiteSpace(clarified.ClarifiedSummary)
+            ? fallbackSummary
+            : clarified.ClarifiedSummary.Trim();
+    }
+
+    private async Task<string> RewriteSummaryAsync(
+        string summary,
+        CancellationToken cancellationToken)
+    {
+        var rewritten = await _aiService.RewriteSummaryAsync(
+            new RewriteSummaryRequestDto
+            {
+                Text = summary
+            },
+            cancellationToken);
+
+        return string.IsNullOrWhiteSpace(rewritten.RewrittenText)
+            ? summary
+            : rewritten.RewrittenText.Trim();
+    }
+
     private static string BuildRawSummary(CheckInSession session)
     {
         return
             $"Người dùng hiện cảm thấy {session.EmotionAnswer?.Trim()}. " +
-            $"Vấn đề chính họ đang gặp là {session.IssueAnswer?.Trim()}. " +
-            $"Điều khiến họ cảm thấy nặng nề hơn là {session.DeepDiveAnswer?.Trim()}.";
+            $"Trải nghiệm hoặc bối cảnh nổi bật mà họ đang chia sẻ là {session.IssueAnswer?.Trim()}. " +
+            $"Điều họ mô tả rõ hơn là {session.DeepDiveAnswer?.Trim()}.";
     }
 
+    
 }
+
+    
 
 

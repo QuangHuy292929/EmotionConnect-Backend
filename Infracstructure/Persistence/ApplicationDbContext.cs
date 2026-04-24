@@ -1,3 +1,4 @@
+using Application.DTOs.Matching;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,12 +24,17 @@ public class ApplicationDbContext : DbContext
     public DbSet<MatchingCandidate> MatchingCandidates => Set<MatchingCandidate>();
     public DbSet<Reflection> Reflections => Set<Reflection>();
     public DbSet<CheckInSession> CheckInSessions => Set<CheckInSession>();
+    public DbSet<MatchingCandidateSeed> MatchingCandidateSeeds => Set<MatchingCandidateSeed>();
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("vector");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        modelBuilder.Entity<MatchingCandidateSeed>().HasNoKey();
+        modelBuilder.Entity<MatchingCandidateSeed>().ToView(null);
 
         base.OnModelCreating(modelBuilder);
     }

@@ -12,3 +12,4 @@ public class CheckInStartResponseDto
     public string InputMode { get; set; } = string.Empty;
     public string FirstQuestion { get; set; } = string.Empty;
 }
+    
