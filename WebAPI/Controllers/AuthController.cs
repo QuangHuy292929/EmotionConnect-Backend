@@ -102,6 +102,8 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<UserSummaryDto>> Me(CancellationToken cancellationToken)
     {
         var userId = User.GetCurrentUserId();
+        Console.WriteLine($"=== UserId from token: {userId} ==="); 
+
         var user = await _authService.GetCurrentUserAsync(userId, cancellationToken);
 
         if (user is null)

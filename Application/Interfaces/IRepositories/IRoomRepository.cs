@@ -12,6 +12,7 @@ namespace Application.Interfaces.IRepositories
         Task<List<Room>> GetByUserIdAync(Guid userId, CancellationToken ct = default);
         Task<bool> IsUserInRoomAsync(Guid roomId, Guid userId, CancellationToken ct = default);
         Task<RoomMember?> GetRoomMemberAsync(Guid roomId, Guid userId, CancellationToken ct = default);
+        Task<List<RoomMember>> GetRoomMembersAsync(Guid roomId, CancellationToken ct = default);
         Task AddAsync(Room room, CancellationToken ct = default);
         Task AddMemberAsync(RoomMember roomMember, CancellationToken ct = default);
         Task RemoveMemberAsync(RoomMember roomMember, CancellationToken ct = default);

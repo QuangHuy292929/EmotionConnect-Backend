@@ -103,6 +103,18 @@ public class RoomService : IRoomService
         return await _unitOfWork.RoomRepository.IsUserInRoomAsync(roomId, userId, cancellationToken);
     }
 
+    public async Task<List<RoomMemberDto>> GetRoomMembersAsync(Guid roomId, CancellationToken cancellationToken = default)
+
+    {
+        if (roomId == Guid.Empty)
+        {
+            throw new BadRequestException($"RoomId is required. {nameof(roomId)}");
+        }
+
+        var members = await _unitOfWork.RoomRepository.GetRoomMembersAsync(roomId, cancellationToken);
+        return members.ToDtoList();
+    }
+
     public async Task JoinRoomAsync(Guid roomId, Guid userId, CancellationToken cancellationToken = default)
     {
         var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId, cancellationToken);

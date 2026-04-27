@@ -1,4 +1,4 @@
-using Application.Interfaces.IRepositories;
+﻿using Application.Interfaces.IRepositories;
 using Domain.Entities;
 using Infracstructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -55,8 +55,17 @@ public class RoomRepository : IRoomRepository
     public async Task<RoomMember?> GetRoomMemberAsync(Guid roomId, Guid userId, CancellationToken ct = default)
     {
         return await _dbContext.RoomMembers
-            .Where(x => x.RoomId == roomId && x.UserId == userId)
+            .Where(x => x.RoomId == roomId && x.UserId == userId)   
             .FirstOrDefaultAsync(ct);
+    }
+    // Lấy tất cả thành viên của phòng
+
+    public async Task<List<RoomMember>> GetRoomMembersAsync(Guid roomId, CancellationToken ct = default)
+    {
+        return await _dbContext.RoomMembers
+            .Where(x => x.RoomId == roomId)
+            .Include(x => x.User)
+            .ToListAsync(ct);
     }
 
     public async Task AddAsync(Room room, CancellationToken ct = default)
