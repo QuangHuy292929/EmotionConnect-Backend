@@ -49,7 +49,6 @@ public class EmotionService : IEmotionService
         var emotionEntry = new EmotionEntry
         {
             UserId = userId,
-            CommunityId = request.CommunityId,
             RoomId = request.RoomId,
             SourceType = sourceType,
             RawText = request.RawText.Trim(),

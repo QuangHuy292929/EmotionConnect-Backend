@@ -15,9 +15,6 @@ public class User : BaseEntity
     public string? GoogleId { get; set; } = string.Empty;
     public bool IsGoogleAccount { get; set; } = false;
 
-
-
-    public ICollection<CommunityMember> CommunityMemberships { get; set; } = new List<CommunityMember>();
     public ICollection<Room> CreatedRooms { get; set; } = new List<Room>();
     public ICollection<RoomMember> RoomMemberships { get; set; } = new List<RoomMember>();
     public ICollection<Message> Messages { get; set; } = new List<Message>();

@@ -92,6 +92,13 @@ public class CheckInSessionController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("{sessionId:guid}/result")]
+    public async Task<ActionResult<CheckInCompletedDto>> GetResult(Guid sessionId, CancellationToken ct)
+    {
+        var result = await _checkInSessionService.GetSessionResultById(sessionId, ct);
+        return Ok(result);
+    }
+
     [HttpGet("my-sessions")]
     public async Task<ActionResult<List<CheckInSessionDto>>> MySessions(CancellationToken ct)
     {

@@ -9,7 +9,6 @@ namespace Application.Interfaces
     {
         IAuthRepository AuthRepository { get; }
         IRoomRepository RoomRepository { get; }
-        ICommunityRepository CommunityRepository { get; }
         IMatchingRepository MatchingRepository { get; }
         IMessageRepository MessageRepository { get; }
         IReflectionRepository ReflectionRepository { get; }

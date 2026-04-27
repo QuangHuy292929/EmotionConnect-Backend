@@ -14,7 +14,6 @@ public class UnitOfWork : IUnitOfWork
         ApplicationDbContext dbContext,
         IAuthRepository authRepository,
         IRoomRepository roomRepository,
-        ICommunityRepository communityRepository,
         IMatchingRepository matchingRepository,
         IMessageRepository messageRepository,
         IReflectionRepository reflectionRepository,
@@ -25,7 +24,6 @@ public class UnitOfWork : IUnitOfWork
         _dbContext = dbContext;
         AuthRepository = authRepository;
         RoomRepository = roomRepository;
-        CommunityRepository = communityRepository;
         MatchingRepository = matchingRepository;
         MessageRepository = messageRepository;
         ReflectionRepository = reflectionRepository;
@@ -35,7 +33,6 @@ public class UnitOfWork : IUnitOfWork
 
     public IAuthRepository AuthRepository { get; }
     public IRoomRepository RoomRepository { get; }
-    public ICommunityRepository CommunityRepository { get; }
     public IMatchingRepository MatchingRepository { get; }
     public IMessageRepository MessageRepository { get; }
     public IReflectionRepository ReflectionRepository { get; }

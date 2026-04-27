@@ -10,6 +10,8 @@ namespace Application.Interfaces.IServices
     {
         Task<MatchingResultDto> CreateMatchingAsync(Guid emotionEntryId, Guid userId, CancellationToken cancellationToken = default);
         Task<List<MatchingCandidateDto>> GetCandidatesAsync(Guid userId, Guid matchingRequestId, CancellationToken cancellationToken = default);
-        Task<RoomDto?> CreateRoomFromMatchingAsync(Guid userIdGuid, Guid matchingRequestId, CancellationToken cancellationToken = default);
+        Task<MatchQueueResultDto> JoinOrCreateQueueAsync(Guid matchingRequestId, Guid userId, CancellationToken cancellationToken = default);
+        Task<MatchQueueStatusDto> GetQueueStatusAsync(Guid matchingRequestId, Guid userId, CancellationToken cancellationToken = default);
+        Task LeaveQueueAsync(Guid matchingRequestId, Guid userId, CancellationToken cancellationToken = default);
     }
 }

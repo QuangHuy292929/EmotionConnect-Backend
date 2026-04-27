@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces.IRepositories;
 using Domain.Entities;
+using Domain.Enums;
 using Infracstructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,26 +18,13 @@ public class RoomRepository : IRoomRepository
     public async Task<Room?> GetByIdAsync(Guid roomId, CancellationToken ct = default)
     {
          return await _dbContext.Rooms
-            .Include(x => x.Community)
             .Include(x => x.Members)
             .FirstOrDefaultAsync(x => x.Id == roomId, ct);
-    }
-
-    public async Task<List<Room>> GetByCommunityIdAsync(Guid communityId, CancellationToken ct = default)
-    {
-        return await _dbContext.Rooms
-            .Include(x => x.Community)
-            .Include(x => x.Members)
-            .Where(x => x.CommunityId == communityId)
-            .OrderByDescending(x => x.CreatedAt)
-            .ToListAsync(ct);
     }
 
     public async Task<List<Room>> GetByUserIdAync(Guid userId, CancellationToken ct = default)
     {
         return await _dbContext.RoomMembers
-            .Include(x => x.Room)
-                .ThenInclude(x => x!.Community)
             .Include(x => x.Room)
                 .ThenInclude(x => x!.Members)
             .Where(x => x.UserId == userId)
@@ -68,6 +56,14 @@ public class RoomRepository : IRoomRepository
             .ToListAsync(ct);
     }
 
+    public async Task<int> GetMemberCountAsync(Guid roomId, CancellationToken ct = default)
+    {
+        return await _dbContext.RoomMembers
+            .CountAsync(
+                x => x.RoomId == roomId && x.MemberState == RoomMemberState.Active,
+                ct);
+    }
+
     public async Task AddAsync(Room room, CancellationToken ct = default)
     {
         await _dbContext.Rooms.AddAsync(room, ct);
@@ -84,8 +80,13 @@ public class RoomRepository : IRoomRepository
         return Task.CompletedTask;
     }
 
-    public Task<Room?> GetAiRoomByUserIdAsync(Guid userId, CancellationToken ct = default)
+    public async Task<Room?> GetAiRoomByUserIdAsync(Guid userId, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        return await _dbContext.Rooms
+            .Include(x => x.Members)
+            .FirstOrDefaultAsync(
+                x => x.RoomType == RoomType.AiPrivate &&
+                     x.Members.Any(m => m.UserId == userId && m.MemberState == RoomMemberState.Active),
+                ct);
     }
 }

@@ -8,7 +8,6 @@ namespace Application.Interfaces.IRepositories
     public interface IRoomRepository
     {
         Task<Room?> GetByIdAsync(Guid roomId, CancellationToken ct = default);
-        Task<List<Room>> GetByCommunityIdAsync(Guid communityId, CancellationToken ct = default);
         Task<List<Room>> GetByUserIdAync(Guid userId, CancellationToken ct = default);
         Task<bool> IsUserInRoomAsync(Guid roomId, Guid userId, CancellationToken ct = default);
         Task<RoomMember?> GetRoomMemberAsync(Guid roomId, Guid userId, CancellationToken ct = default);
@@ -17,5 +16,6 @@ namespace Application.Interfaces.IRepositories
         Task AddMemberAsync(RoomMember roomMember, CancellationToken ct = default);
         Task RemoveMemberAsync(RoomMember roomMember, CancellationToken ct = default);
         Task<Room?> GetAiRoomByUserIdAsync(Guid userId, CancellationToken ct = default);
+        Task<int> GetMemberCountAsync(Guid roomId, CancellationToken ct = default);
     }
 }

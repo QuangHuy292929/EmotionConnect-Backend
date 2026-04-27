@@ -2,7 +2,9 @@ namespace Domain.Enums;
 
 public enum RoomStatus
 {
-    Open = 1,
-    Closed = 2,
-    Archived = 3
+    Waiting = 1,
+    Ready = 2,
+    Active = 3,
+    Closed = 4,
+    Archived = 5
 }

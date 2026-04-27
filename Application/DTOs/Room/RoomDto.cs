@@ -3,8 +3,6 @@ namespace Application.DTOs.Room;
 public class RoomDto
 {
     public Guid Id { get; set; }
-    public Guid? CommunityId { get; set; }
-    public string? CommunityName { get; set; }
     public string? Name { get; set; }
     public string RoomType { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;

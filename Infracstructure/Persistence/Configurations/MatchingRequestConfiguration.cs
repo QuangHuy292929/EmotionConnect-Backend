@@ -21,8 +21,8 @@ public class MatchingRequestConfiguration : IEntityTypeConfiguration<MatchingReq
         builder.Property(x => x.UpdatedAt).IsRequired();
 
         builder.HasIndex(x => new { x.UserId, x.CreatedAt });
-        builder.HasIndex(x => x.CommunityId);
         builder.HasIndex(x => x.RequestStatus);
+        builder.HasIndex(x => x.AssignedRoomId);
 
         builder.HasOne(x => x.User)
             .WithMany(x => x.MatchingRequests)
@@ -34,9 +34,9 @@ public class MatchingRequestConfiguration : IEntityTypeConfiguration<MatchingReq
             .HasForeignKey(x => x.EmotionEntryId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(x => x.Community)
+        builder.HasOne(x => x.AssignedRoom)
             .WithMany(x => x.MatchingRequests)
-            .HasForeignKey(x => x.CommunityId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .HasForeignKey(x => x.AssignedRoomId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

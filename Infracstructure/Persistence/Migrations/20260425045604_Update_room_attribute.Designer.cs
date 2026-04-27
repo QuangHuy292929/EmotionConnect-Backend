@@ -3,6 +3,7 @@ using System;
 using Infracstructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace Infracstructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260425045604_Update_room_attribute")]
+    partial class Update_room_attribute
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -117,10 +120,128 @@ namespace Infracstructure.Persistence.Migrations
                     b.ToTable("checkin_sessions", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.Community", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("communities", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("a1f3b2cb-0d53-4e8e-9d6d-6c0be9ec4f11"),
+                            Category = "Career",
+                            CreatedAt = new DateTime(2026, 3, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A supportive space for sharing workplace pressure, career uncertainty, and professional burnout.",
+                            IsActive = true,
+                            Name = "Career Support",
+                            Slug = "career",
+                            UpdatedAt = new DateTime(2026, 3, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("c97d2e9a-1de4-46fe-9300-2a76092e6d22"),
+                            Category = "Study",
+                            CreatedAt = new DateTime(2026, 3, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A community for academic stress, exam anxiety, learning struggles, and student life challenges.",
+                            IsActive = true,
+                            Name = "Study Support",
+                            Slug = "study",
+                            UpdatedAt = new DateTime(2026, 3, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("f45d3de7-9c1f-4f31-bff0-6b67e2f6a733"),
+                            Category = "Life",
+                            CreatedAt = new DateTime(2026, 3, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A place to connect over personal challenges, family matters, loneliness, and everyday emotional burdens.",
+                            IsActive = true,
+                            Name = "Life Support",
+                            Slug = "life",
+                            UpdatedAt = new DateTime(2026, 3, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.CommunityMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CommunityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CommunityId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("community_members", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.EmotionEntry", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CommunityId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -165,6 +286,8 @@ namespace Infracstructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CommunityId");
 
                     b.HasIndex("RoomId");
 
@@ -268,6 +391,9 @@ namespace Infracstructure.Persistence.Migrations
                     b.Property<Guid?>("AssignedRoomId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("CommunityId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -294,6 +420,8 @@ namespace Infracstructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AssignedRoomId");
+
+                    b.HasIndex("CommunityId");
 
                     b.HasIndex("EmotionEntryId");
 
@@ -398,6 +526,9 @@ namespace Infracstructure.Persistence.Migrations
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("CommunityId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -431,6 +562,8 @@ namespace Infracstructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CommunityId");
 
                     b.HasIndex("CreatedById");
 
@@ -601,8 +734,32 @@ namespace Infracstructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.CommunityMember", b =>
+                {
+                    b.HasOne("Domain.Entities.Community", "Community")
+                        .WithMany("Members")
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("CommunityMemberships")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Community");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Entities.EmotionEntry", b =>
                 {
+                    b.HasOne("Domain.Entities.Community", "Community")
+                        .WithMany("EmotionEntries")
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Domain.Entities.Room", "Room")
                         .WithMany("EmotionEntries")
                         .HasForeignKey("RoomId")
@@ -613,6 +770,8 @@ namespace Infracstructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Community");
 
                     b.Navigation("Room");
 
@@ -662,6 +821,11 @@ namespace Infracstructure.Persistence.Migrations
                         .HasForeignKey("AssignedRoomId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("Domain.Entities.Community", "Community")
+                        .WithMany("MatchingRequests")
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Domain.Entities.EmotionEntry", "EmotionEntry")
                         .WithMany("MatchingRequests")
                         .HasForeignKey("EmotionEntryId")
@@ -675,6 +839,8 @@ namespace Infracstructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("AssignedRoom");
+
+                    b.Navigation("Community");
 
                     b.Navigation("EmotionEntry");
 
@@ -728,11 +894,18 @@ namespace Infracstructure.Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Room", b =>
                 {
+                    b.HasOne("Domain.Entities.Community", "Community")
+                        .WithMany("Rooms")
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Domain.Entities.User", "CreatedBy")
                         .WithMany("CreatedRooms")
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Community");
 
                     b.Navigation("CreatedBy");
                 });
@@ -765,6 +938,17 @@ namespace Infracstructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("EmotionEntry");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Community", b =>
+                {
+                    b.Navigation("EmotionEntries");
+
+                    b.Navigation("MatchingRequests");
+
+                    b.Navigation("Members");
+
+                    b.Navigation("Rooms");
                 });
 
             modelBuilder.Entity("Domain.Entities.EmotionEntry", b =>
@@ -800,6 +984,8 @@ namespace Infracstructure.Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
+                    b.Navigation("CommunityMemberships");
+
                     b.Navigation("CreatedRooms");
 
                     b.Navigation("EmotionEntries");

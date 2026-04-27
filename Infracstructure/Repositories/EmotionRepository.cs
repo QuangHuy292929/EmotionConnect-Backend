@@ -34,7 +34,6 @@ public class EmotionRepository : IEmotionRepository
         return await _dbContext.EmotionEntries
             .Include(x => x.Scores)
             .Include(x => x.Embedding)
-            .Include(x => x.Community)
             .Include(x => x.Room)
             .FirstOrDefaultAsync(x => x.Id == emotionEntryId, cancellationToken);
     }

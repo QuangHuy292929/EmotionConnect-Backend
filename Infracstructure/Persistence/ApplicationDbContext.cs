@@ -12,8 +12,6 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<User> Users => Set<User>();
-    public DbSet<Community> Communities => Set<Community>();
-    public DbSet<CommunityMember> CommunityMembers => Set<CommunityMember>();
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<RoomMember> RoomMembers => Set<RoomMember>();
     public DbSet<Message> Messages => Set<Message>();

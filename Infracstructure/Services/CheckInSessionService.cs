@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.AI;
 using Application.DTOs.CheckIn;
+using Application.DTOs.Matching;
 using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Common;
@@ -146,6 +147,57 @@ public class CheckInSessionService : ICheckInSessionService
 
         var session = await _unitOfWork.CheckInSessionRepository.GetByIdAsync(sessionId, ct);
         return session is null ? null : MapSessionForConversationHydration(session);
+    }
+
+
+    public async Task<CheckInCompletedDto> GetSessionResultById(Guid sessionId, CancellationToken ct = default)
+    {
+        if (sessionId == Guid.Empty)
+        {
+            throw new BadRequestException("Session Id is required here");
+        }
+
+        var sessionResult = await _unitOfWork.CheckInSessionRepository.GetByIdAsync(sessionId, ct);
+        if (sessionResult is null)
+        {
+            throw new NotFoundException("Check-in session not found.");
+        }
+
+        if (sessionResult.Status != CheckInStatus.Completed || !sessionResult.EmotionEntryId.HasValue)
+        {
+            throw new ConflictException("This check-in session does not have a completed result yet.");
+        }
+
+        var emotionEntry = await _unitOfWork.EmotionRepository.GetByIdAsync(sessionResult.EmotionEntryId.Value, ct);
+        if (emotionEntry is null)
+        {
+            throw new NotFoundException("Emotion entry for this check-in session was not found.");
+        }
+
+        var matchingRequest = await _unitOfWork.MatchingRepository
+            .GetLatestRequestByEmotionEntryIdAsync(emotionEntry.Id, ct);
+
+        var vector = emotionEntry.Embedding is null
+            ? new List<float>()
+            : emotionEntry.Embedding.Embedding.ToArray().ToList();
+
+        return new CheckInCompletedDto
+        {
+            SessionId = sessionResult.Id,
+            EmotionEntryId = emotionEntry.Id,
+            ConfirmedSummary = sessionResult.ConfirmedSummary ?? string.Empty,
+            TopEmotion = emotionEntry.TopEmotion,
+            TopEmotionScore = emotionEntry.TopEmotionScore,
+            AllEmotions = emotionEntry.Scores
+                .OrderByDescending(x => x.Score)
+                .Select(x => x.ToDto())
+                .ToList(),
+            Vector = vector,
+            MatchingRequestId = matchingRequest?.Id,
+            Candidates = matchingRequest is null
+                ? new List<MatchingCandidateDto>()
+                : matchingRequest.Candidates.ToDtoList()
+        };
     }
 
     public async Task<CheckInStartResponseDto> StartAsync(Guid userId, StartCheckInRequest request, CancellationToken ct = default)
@@ -372,8 +424,6 @@ public class CheckInSessionService : ICheckInSessionService
             $"Trải nghiệm hoặc bối cảnh nổi bật mà họ đang chia sẻ là {session.IssueAnswer?.Trim()}. " +
             $"Điều họ mô tả rõ hơn là {session.DeepDiveAnswer?.Trim()}.";
     }
-
-    
 }
 
     

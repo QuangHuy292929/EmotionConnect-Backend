@@ -37,15 +37,33 @@ public class MatchingController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("{matchingRequestId:guid}/room")]
-    public async Task<ActionResult<RoomDto>> CreateRoom(Guid matchingRequestId, CancellationToken ct)
+    [HttpPost("{matchingRequestId:guid}/join-or-create")]
+    public async Task<ActionResult<MatchQueueResultDto>> JoinOrCreate(
+        Guid matchingRequestId,
+        CancellationToken ct)
     {
         var userId = User.GetCurrentUserId();
-        var result = await _matchingService.CreateRoomFromMatchingAsync(userId, matchingRequestId, ct);
-        if (result == null)
-        {
-            return NotFound(new { message = "Unable to create room from the matching request." });
-        }
+        var result = await _matchingService.JoinOrCreateQueueAsync(matchingRequestId, userId, ct);
         return Ok(result);
+    }
+
+    [HttpGet("{matchingRequestId:guid}/status")]
+    public async Task<ActionResult<MatchQueueStatusDto>> GetQueueStatus(
+        Guid matchingRequestId,
+        CancellationToken ct)
+    {
+        var userId = User.GetCurrentUserId();
+        var result = await _matchingService.GetQueueStatusAsync(matchingRequestId, userId, ct);
+        return Ok(result);
+    }
+
+    [HttpPost("{matchingRequestId:guid}/leave-queue")]
+    public async Task<IActionResult> LeaveQueue(
+        Guid matchingRequestId,
+        CancellationToken ct)
+    {
+        var userId = User.GetCurrentUserId();
+        await _matchingService.LeaveQueueAsync(matchingRequestId, userId, ct);
+        return NoContent();
     }
 }

@@ -31,14 +31,6 @@ public class RoomController : ControllerBase
         return Ok(room);
     }
 
-    [HttpGet("community/{communityId:guid}")]
-    [AllowAnonymous]
-    public async Task<ActionResult<List<RoomDto>>> GetByCommunity(Guid communityId, CancellationToken cancellationToken)
-    {
-        var rooms = await _roomService.GetByCommunityAsync(communityId, cancellationToken);
-        return Ok(rooms);
-    }
-
     [HttpGet("my")]
     public async Task<ActionResult<List<RoomDto>>> GetMyRooms(CancellationToken cancellationToken)
     {

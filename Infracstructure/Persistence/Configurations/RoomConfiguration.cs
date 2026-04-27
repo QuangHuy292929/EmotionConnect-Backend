@@ -29,14 +29,8 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
         builder.Property(x => x.CreatedAt).IsRequired();
         builder.Property(x => x.UpdatedAt).IsRequired();
 
-        builder.HasIndex(x => x.CommunityId);
         builder.HasIndex(x => x.CreatedById);
         builder.HasIndex(x => x.Status);
-
-        builder.HasOne(x => x.Community)
-            .WithMany(x => x.Rooms)
-            .HasForeignKey(x => x.CommunityId)
-            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(x => x.CreatedBy)
             .WithMany(x => x.CreatedRooms)

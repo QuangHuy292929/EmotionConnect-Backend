@@ -12,8 +12,6 @@ public static class RoomMapper
         return new RoomDto
         {
             Id = room.Id,
-            CommunityId = room.CommunityId,
-            CommunityName = room.Community?.Name,
             Name = room.Name,
             RoomType = room.RoomType.ToString(),
             Status = room.Status.ToString(),

@@ -11,7 +11,6 @@ public static class EmotionMapper
         {
             Id = emotionEntry.Id,
             UserId = emotionEntry.UserId,
-            CommunityId = emotionEntry.CommunityId,
             RoomId = emotionEntry.RoomId,
             SourceType = emotionEntry.SourceType.ToString(),
             RawText = emotionEntry.RawText,

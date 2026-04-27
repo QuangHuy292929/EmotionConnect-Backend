@@ -68,7 +68,6 @@ public static class DependencyInjection
 
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddScoped<IRoomRepository, RoomRepository>();
-        services.AddScoped<ICommunityRepository, CommunityRepository>();
         services.AddScoped<IMatchingRepository, MatchingRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IReflectionRepository, ReflectionRepository>();
@@ -78,7 +77,6 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<ICommunityService, CommunityService>();
         services.AddScoped<IRoomService, RoomService>();
         services.AddScoped<IMatchingService, MatchingService>();
         services.AddScoped<IMessageService, MessageService>();

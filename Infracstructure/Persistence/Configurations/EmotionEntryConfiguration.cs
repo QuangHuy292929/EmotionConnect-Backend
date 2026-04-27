@@ -37,7 +37,6 @@ public class EmotionEntryConfiguration : IEntityTypeConfiguration<EmotionEntry>
         builder.Property(x => x.UpdatedAt).IsRequired();
 
         builder.HasIndex(x => new { x.UserId, x.CreatedAt });
-        builder.HasIndex(x => x.CommunityId);
         builder.HasIndex(x => x.RoomId);
         builder.HasIndex(x => x.TopEmotion);
 
@@ -45,11 +44,6 @@ public class EmotionEntryConfiguration : IEntityTypeConfiguration<EmotionEntry>
             .WithMany(x => x.EmotionEntries)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(x => x.Community)
-            .WithMany(x => x.EmotionEntries)
-            .HasForeignKey(x => x.CommunityId)
-            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(x => x.Room)
             .WithMany(x => x.EmotionEntries)

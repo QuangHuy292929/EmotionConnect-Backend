@@ -4,7 +4,6 @@ public class EmotionEntryDto
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
-    public Guid? CommunityId { get; set; }
     public Guid? RoomId { get; set; }
     public string SourceType { get; set; } = string.Empty;
     public string RawText { get; set; } = string.Empty;

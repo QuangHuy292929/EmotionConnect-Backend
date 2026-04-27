@@ -43,11 +43,10 @@ public class RoomService : IRoomService
         var room = new Room
         {
             Name = string.IsNullOrWhiteSpace(request.Name) ? null : request.Name.Trim(),
-            CommunityId = request.CommunityId,
             CreatedById = createByUserId,
             MaxMembers = request.MaxMembers,
             RoomType = roomType,
-            Status = RoomStatus.Open
+            Status = RoomStatus.Waiting
         };
 
         await _unitOfWork.RoomRepository.AddAsync(room, ct);
@@ -63,17 +62,6 @@ public class RoomService : IRoomService
 
         var createdRoom = await _unitOfWork.RoomRepository.GetByIdAsync(room.Id, ct);
         return (createdRoom ?? room).ToDto();
-    }
-
-    public async Task<List<RoomDto>> GetByCommunityAsync(Guid coomunityId, CancellationToken ct = default)
-    {
-        if (coomunityId == Guid.Empty)
-        {
-            throw new BadRequestException($"CommunityId is required. {nameof(coomunityId)}");
-        }
-
-        var rooms = await _unitOfWork.RoomRepository.GetByCommunityIdAsync(coomunityId, ct);
-        return rooms.ToDtoList();
     }
 
     public async Task<RoomDto?> GetByIdAsync(Guid roomId, CancellationToken ct = default)
