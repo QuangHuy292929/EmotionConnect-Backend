@@ -1,12 +1,17 @@
-﻿using Application.DTOs.CheckIn;
+using Application.DTOs.CheckIn;
 using Domain.Entities;
-using System.Diagnostics.SymbolStore;
 
 namespace Infracstructure.Mappers;
 
 public static class CheckInSessionMapper
 {
-    public static CheckInSessionDto ToDto(this CheckInSession session)
+    public static CheckInSessionDto ToDto(
+        this CheckInSession session,
+        string? currentQuestion = null,
+        string? emotionQuestion = null,
+        string? issueQuestion = null,
+        string? deepDiveQuestion = null,
+        string? reviewQuestion = null)
     {
         return new CheckInSessionDto
         {
@@ -16,13 +21,18 @@ public static class CheckInSessionMapper
             Status = session.Status.ToString(),
             CurrentStep = session.CurrentStep.ToString(),
             InputMode = session.InputMode.ToString(),
+            CurrentQuestion = currentQuestion,
+            EmotionQuestion = emotionQuestion,
+            IssueQuestion = issueQuestion,
+            DeepDiveQuestion = deepDiveQuestion,
+            ReviewQuestion = reviewQuestion,
 
             EmotionAnswer = session.EmotionAnswer,
             IssueAnswer = session.IssueAnswer,
             DeepDiveAnswer = session.DeepDiveAnswer,
 
             GeneratedSummary = session.GeneratedSummary,
-            EditedSummmary = session.EditedSummary,
+            EditedSummary = session.EditedSummary,
             ConfirmedSummary = session.ConfirmedSummary,
 
             CreatedAt = session.CreatedAt,
@@ -58,8 +68,21 @@ public static class CheckInSessionMapper
         };
     }
 
-    public static List<CheckInSessionDto> ToListDto(this IEnumerable<CheckInSession> sessions)
+    public static List<CheckInSessionDto> ToListDto(
+        this IEnumerable<CheckInSession> sessions,
+        Func<CheckInSession, string?>? currentQuestionFactory = null,
+        Func<CheckInSession, string?>? emotionQuestionFactory = null,
+        Func<CheckInSession, string?>? issueQuestionFactory = null,
+        Func<CheckInSession, string?>? deepDiveQuestionFactory = null,
+        Func<CheckInSession, string?>? reviewQuestionFactory = null)
     {
-        return sessions.Select(ToDto).ToList();
+        return sessions
+            .Select(session => session.ToDto(
+                currentQuestionFactory?.Invoke(session),
+                emotionQuestionFactory?.Invoke(session),
+                issueQuestionFactory?.Invoke(session),
+                deepDiveQuestionFactory?.Invoke(session),
+                reviewQuestionFactory?.Invoke(session)))
+            .ToList();
     }
 }

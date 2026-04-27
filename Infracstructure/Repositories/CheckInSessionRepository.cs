@@ -46,5 +46,15 @@ namespace Infracstructure.Repositories
             .Include(x => x.EmotionEntry)
             .FirstOrDefaultAsync(x => x.Id == sessionId, cancellationToken);
         }
+
+        public async Task<List<CheckInSession>> GetMySessions(Guid userId, CancellationToken ct = default)
+        {
+            return await _dbContext.CheckInSessions
+                .Include(x => x.User)
+                .Include(x => x.EmotionEntry)
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync(ct);
+        }
     }
 }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Application.DTOs.CheckIn;
 
 public class CheckInSessionDto
@@ -13,13 +10,18 @@ public class CheckInSessionDto
     public string Status { get; set; } = string.Empty;
     public string CurrentStep { get; set; } = string.Empty;
     public string InputMode { get; set; } = string.Empty;
+    public string? CurrentQuestion { get; set; }
+    public string? EmotionQuestion { get; set; }
+    public string? IssueQuestion { get; set; }
+    public string? DeepDiveQuestion { get; set; }
+    public string? ReviewQuestion { get; set; }
 
     public string? EmotionAnswer { get; set; }
     public string? IssueAnswer { get; set; }
     public string? DeepDiveAnswer { get; set; }
 
     public string? GeneratedSummary { get; set; }
-    public string? EditedSummmary { get; set; }
+    public string? EditedSummary { get; set; }
     public string? ConfirmedSummary { get; set; }
 
     public DateTime CreatedAt { get; set; }

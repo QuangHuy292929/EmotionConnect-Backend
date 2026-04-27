@@ -46,43 +46,41 @@ public class MatchingRepository : IMatchingRepository
     {
         FormattableString query = $@"
             WITH source_entry AS (
-                SELECT id, community_id
+                SELECT ""Id"", ""CommunityId""
                 FROM emotion_entries
-                WHERE id = {emotionEntryId}
+                WHERE ""Id"" = {emotionEntryId}
             ),
             source_embedding AS (
-                SELECT embedding
+                SELECT ""Embedding""
                 FROM text_embeddings
-                WHERE emotion_entry_id = {emotionEntryId}
+                WHERE ""EmotionEntryId"" = {emotionEntryId}
             ),
             ranked_candidates AS (
-                SELECT DISTINCT ON (candidate_entry.user_id)
-                    candidate_entry.user_id AS ""CandidateUserId"",
-                    CAST(1 - (source_embedding.embedding <=> candidate_embedding.embedding) AS numeric(6,5)) AS ""SimilarityScore"",
+                SELECT DISTINCT ON (candidate_entry.""UserId"")
+                    candidate_entry.""UserId"" AS ""CandidateUserId"",
+                    CAST(1 - (source_embedding.""Embedding"" <=> candidate_embedding.""Embedding"") AS numeric(6,5)) AS ""SimilarityScore"",
                     CASE
-                        WHEN candidate_entry.community_id IS NOT DISTINCT FROM source_entry.community_id
+                        WHEN candidate_entry.""CommunityId"" IS NOT DISTINCT FROM source_entry.""CommunityId""
                             THEN 'Same community and similar emotional context.'
                         ELSE 'Similar emotional context.'
                     END AS ""MatchReason""
                 FROM source_entry
                 CROSS JOIN source_embedding
                 JOIN text_embeddings candidate_embedding
-                    ON candidate_embedding.emotion_entry_id <> {emotionEntryId}
+                    ON candidate_embedding.""EmotionEntryId"" <> {emotionEntryId}
                 JOIN emotion_entries candidate_entry
-                    ON candidate_entry.id = candidate_embedding.emotion_entry_id
-                WHERE candidate_entry.user_id <> {userId}
-                ORDER BY candidate_entry.user_id, source_embedding.embedding <=> candidate_embedding.embedding
+                    ON candidate_entry.""Id"" = candidate_embedding.""EmotionEntryId""
+                WHERE candidate_entry.""UserId"" <> {userId}
+                ORDER BY candidate_entry.""UserId"", source_embedding.""Embedding"" <=> candidate_embedding.""Embedding""
             )
-            SELECT
-                ""CandidateUserId"",
-                ""SimilarityScore"",
-                ""MatchReason""
+            SELECT ""CandidateUserId"", ""SimilarityScore"", ""MatchReason""
             FROM ranked_candidates
             ORDER BY ""SimilarityScore"" DESC
             LIMIT 10";
 
-        return await _dbContext.Database
-            .SqlQuery<MatchingCandidateSeed>(query)
+        return await _dbContext.Set<MatchingCandidateSeed>()
+            .FromSqlInterpolated(query)
             .ToListAsync(cancellationToken);
+
     }
 }
