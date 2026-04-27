@@ -87,6 +87,7 @@ public static class DependencyInjection
         services.AddScoped<IUserPresenceService, UserPresenceService>();
         services.AddScoped<ICheckInSessionService, CheckInSessionService>();
 
+
         return services;
     }
 }

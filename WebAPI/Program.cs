@@ -61,7 +61,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 var path = context.HttpContext.Request.Path;
                 var accessToken = context.Request.Query["access_token"];
-
                 if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/hubs/presence") || path.StartsWithSegments("/hubs/chat")))
                 {
                     context.Token = accessToken;
@@ -69,11 +68,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 }
 
                 var cookieToken = context.Request.Cookies["token"];
+
+                // THÊM LOG NÀY
+                Console.WriteLine($"=== Cookie token: {cookieToken?[..20] ?? "NULL"} ===");
+                Console.WriteLine($"=== All cookies: {string.Join(", ", context.Request.Cookies.Keys)} ===");
+               
+
                 if (!string.IsNullOrWhiteSpace(cookieToken))
                 {
                     context.Token = cookieToken;
                 }
-
                 return Task.CompletedTask;
             }
         };
@@ -106,11 +110,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
-app.UseMiddleware<UserActivityMiddleware>();
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseAuthorization();
+app.UseAuthorization();                          // ← Lên trước middleware custom
+app.UseMiddleware<ExceptionHandlingMiddleware>(); // ← Exception bắt toàn bộ
+app.UseMiddleware<UserActivityMiddleware>();      // ← Sau khi đã có User
 app.MapHub<PresenceHub>("/hubs/presence");
 app.MapHub<ChatHub>("/hubs/chat");
 app.MapControllers();

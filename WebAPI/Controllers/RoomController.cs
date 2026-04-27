@@ -47,6 +47,13 @@ public class RoomController : ControllerBase
         return Ok(rooms);
     }
 
+    [HttpGet("{roomId:guid}/members")]
+    public async Task<ActionResult<List<RoomMemberDto>>> GetMembers(Guid roomId, CancellationToken cancellationToken)
+    {
+        var members = await _roomService.GetRoomMembersAsync(roomId, cancellationToken);
+        return Ok(members);
+    }
+
     [HttpPost]
     public async Task<ActionResult<RoomDto>> Create(CreateRoomRequest request, CancellationToken cancellationToken)
     {
