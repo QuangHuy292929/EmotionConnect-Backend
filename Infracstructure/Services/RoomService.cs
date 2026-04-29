@@ -68,7 +68,7 @@ public class RoomService : IRoomService
     {
         if (roomId == Guid.Empty)
         {
-            throw new BadRequestException($"RoomId is required. {nameof(roomId)}" );
+            throw new BadRequestException($"RoomId is required. {nameof(roomId)}");
         }
 
         var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId, ct);
@@ -136,7 +136,7 @@ public class RoomService : IRoomService
     {
         if (roomId == Guid.Empty)
         {
-            throw new BadRequestException($"RoomId is required. {nameof(roomId)}" );
+            throw new BadRequestException($"RoomId is required. {nameof(roomId)}");
         }
 
         if (userId == Guid.Empty)
