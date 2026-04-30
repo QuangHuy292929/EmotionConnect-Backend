@@ -115,11 +115,6 @@ public class MatchingService : IMatchingService
                     cancellationToken);
             }
 
-            if (await _unitOfWork.MatchingRepository.IsUserInAnyOpenMatchingRoomAsync(userId, cancellationToken))
-            {
-                throw new ConflictException("User is already in an active matching room.");
-            }
-
             var waitingRoomMatches = await _unitOfWork.MatchingRepository.FindEligibleWaitingRoomsAsync(
                 matchingRequestId,
                 userId,

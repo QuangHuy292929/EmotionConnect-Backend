@@ -23,6 +23,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<Reflection> Reflections => Set<Reflection>();
     public DbSet<CheckInSession> CheckInSessions => Set<CheckInSession>();
     public DbSet<MatchingCandidateSeed> MatchingCandidateSeeds => Set<MatchingCandidateSeed>();
+    public DbSet<Friendship> Friendships => Set<Friendship>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<OutBoxMessage> OutBoxMessages => Set<OutBoxMessage>();
+    public DbSet<Achievement> Achievements => Set<Achievement>();
+    public DbSet<UserAchievement> UserAchievements => Set<UserAchievement>();
 
 
 

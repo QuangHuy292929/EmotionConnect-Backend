@@ -22,4 +22,8 @@ public class User : BaseEntity
     public ICollection<MatchingRequest> MatchingRequests { get; set; } = new List<MatchingRequest>();
     public ICollection<MatchingCandidate> MatchingCandidates { get; set; } = new List<MatchingCandidate>();
     public ICollection<Reflection> Reflections { get; set; } = new List<Reflection>();
+    public ICollection<Friendship> FriendshipsInitiated { get; set; } = new List<Friendship>();
+    public ICollection<Friendship> FriendshipsReceived { get; set; } = new List<Friendship>();
+    public ICollection<UserAchievement> UserAchievements { get; set; } = new List<UserAchievement>();
+    public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

@@ -73,6 +73,11 @@ public static class DependencyInjection
         services.AddScoped<IReflectionRepository, ReflectionRepository>();
         services.AddScoped<IEmotionRepository, EmotionRepository>();
         services.AddScoped<ICheckInSessionRepository, CheckInSessionRepository>();
+        services.AddScoped<IFriendshipRepository, FriendshipRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IAchievementRepository, AchievementRepository>();
+        services.AddScoped<IUserAchievementRepository, UserAchievementRepository>();
+        services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -84,7 +89,13 @@ public static class DependencyInjection
         services.AddScoped<IEmotionService, EmotionService>();
         services.AddScoped<IUserPresenceService, UserPresenceService>();
         services.AddScoped<ICheckInSessionService, CheckInSessionService>();
+        services.AddScoped<IFriendshipService, FriendshipService>();
+        services.AddScoped<IAchievementService, AchievementService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IOutboxMessageService, OutboxMessageService>();
 
+        services.AddScoped<IOutBoxProcessor, OutboxProcessor>();
+        services.AddHostedService<OutboxProcessorBackgroundService>();
 
         return services;
     }
