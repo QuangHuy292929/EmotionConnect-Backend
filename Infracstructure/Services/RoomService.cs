@@ -75,14 +75,19 @@ public class RoomService : IRoomService
         return room?.ToDto();
     }
 
-    public async Task<List<RoomDto>> GetMyRoomsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<List<RoomDto>> GetMyRoomsAsync(Guid userId, string roomType, CancellationToken cancellationToken = default)
     {
         if (userId == Guid.Empty)
         {
             throw new BadRequestException($"UserId is required. {nameof(userId)}");
         }
 
-        var rooms = await _unitOfWork.RoomRepository.GetByUserIdAync(userId, cancellationToken);
+        if (!Enum.TryParse<RoomType>(roomType, true, out var roomTypeParsed))
+        {
+            throw new ConflictException("Check in input mode is invalid");
+        }
+
+        var rooms = await _unitOfWork.RoomRepository.GetByUserIdAync(userId, roomTypeParsed, cancellationToken);
         return rooms.ToDtoList();
     }
 
@@ -136,7 +141,7 @@ public class RoomService : IRoomService
     {
         if (roomId == Guid.Empty)
         {
-            throw new BadRequestException($"RoomId is required. {nameof(roomId)}");
+            throw new BadRequestException($"RoomId is required. {nameof(roomId)}" );
         }
 
         if (userId == Guid.Empty)
@@ -154,5 +159,63 @@ public class RoomService : IRoomService
         await _unitOfWork.SaveChangeAsync(cancellationToken);
     }
 
+    public async Task<RoomDto> GetOrCreateDirectRoomAsync(Guid currentUserId, Guid otherUserId, CancellationToken cancellationToken = default)
+    {
+        if (otherUserId == Guid.Empty)
+        {
+            throw new BadRequestException($"OtherUserId is required. {nameof(otherUserId)}");
+        }
+        if (currentUserId == otherUserId)
+        {
+            throw new BadRequestException("CurrentUserId and OtherUserId cannot be the same.");
+        }
 
+        var friendship = await _unitOfWork.FriendshipRepository.GetByUsersAsync(currentUserId, otherUserId, cancellationToken);
+        if(friendship is null || friendship.Status != FriendshipStatus.Accepted)
+        {
+            throw new ForbiddenException("Direct chat is only available between accepted friend");
+        }
+
+
+        var existingRoom = await _unitOfWork.RoomRepository.GetDirectRoomBetweenUsersAsync(currentUserId, otherUserId, cancellationToken);
+        if (existingRoom != null)
+        {
+            return existingRoom.ToDto();
+        }
+
+        var lowId = currentUserId.CompareTo(otherUserId) <= 0 ? currentUserId : otherUserId;
+        var highId = currentUserId.CompareTo(otherUserId) <= 0 ? otherUserId : currentUserId;
+
+        var room = new Room
+        {
+            Name = null,
+            RoomType = RoomType.Direct,
+            Status = RoomStatus.Active,
+            CreatedById = currentUserId,
+            MaxMembers = 2,
+            UserLowId = lowId,
+            UserHighId = highId
+        };
+        await _unitOfWork.RoomRepository.AddAsync(room, cancellationToken);
+
+        var member1 = new RoomMember
+        {
+            RoomId = room.Id,
+            UserId = currentUserId,
+            MemberState = RoomMemberState.Active
+        };
+        var member2 = new RoomMember
+        {
+            RoomId = room.Id,
+            UserId = otherUserId,
+            MemberState = RoomMemberState.Active
+        };
+        await _unitOfWork.RoomRepository.AddMemberAsync(member1, cancellationToken);
+        await _unitOfWork.RoomRepository.AddMemberAsync(member2, cancellationToken);
+
+        await _unitOfWork.SaveChangeAsync(cancellationToken);
+        var createdRoom = await _unitOfWork.RoomRepository.GetByIdAsync(room.Id, cancellationToken);
+        return (createdRoom ?? room).ToDto();
+    }
 }
+

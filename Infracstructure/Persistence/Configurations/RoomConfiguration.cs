@@ -31,6 +31,9 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
 
         builder.HasIndex(x => x.CreatedById);
         builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => new { x.RoomType, x.UserLowId, x.UserHighId}).IsUnique();
+        builder.HasIndex(x => new { x.UserLowId, x.UserHighId });
+
 
         builder.HasOne(x => x.CreatedBy)
             .WithMany(x => x.CreatedRooms)

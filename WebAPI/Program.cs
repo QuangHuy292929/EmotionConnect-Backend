@@ -119,6 +119,7 @@ app.UseStaticFiles();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<UserActivityMiddleware>();
 app.MapHub<PresenceHub>("/hubs/presence");

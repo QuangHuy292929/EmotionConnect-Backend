@@ -32,10 +32,10 @@ public class RoomController : ControllerBase
     }
 
     [HttpGet("my")]
-    public async Task<ActionResult<List<RoomDto>>> GetMyRooms(CancellationToken cancellationToken)
+    public async Task<ActionResult<List<RoomDto>>> GetMyRooms(string roomType, CancellationToken cancellationToken)
     {
         var userId = User.GetCurrentUserId();
-        var rooms = await _roomService.GetMyRoomsAsync(userId, cancellationToken);
+        var rooms = await _roomService.GetMyRoomsAsync(userId, roomType, cancellationToken);
         return Ok(rooms);
     }
 
@@ -69,4 +69,13 @@ public class RoomController : ControllerBase
         await _roomService.LeaveRoomAsync(roomId, userId, cancellationToken);
         return NoContent();
     }
+
+    [HttpPost("direct/{otherUserId:guid}")]
+    public async Task<ActionResult<RoomDto>> GetOrCreateDirectRoom(Guid otherUserId, CancellationToken ct)
+    {
+        var userId = User.GetCurrentUserId();
+        var room = await _roomService.GetOrCreateDirectRoomAsync(userId, otherUserId, ct);
+        return Ok(room);
+    }
+
 }

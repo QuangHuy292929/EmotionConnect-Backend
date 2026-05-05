@@ -10,6 +10,7 @@ namespace Domain.Enums
         Friendship = 2,
         Chat = 3,
         Reflection = 4,
-        Streak = 5
+        Matching = 5,
+        Streak = 6
     }
 }

@@ -19,7 +19,7 @@ public class FriendshipController : ControllerBase
     }
 
     [HttpPost("request")]
-    public async Task<ActionResult<FriendshipDto>> AddFriend(Guid addresseeId, CancellationToken ct)
+    public async Task<ActionResult<FriendshipDto>> AddFriend([FromBody]Guid addresseeId, CancellationToken ct)
     {
         var userId = User.GetCurrentUserId();
         var result = await _friendshipService.SendRequestAsync(userId, addresseeId, ct);

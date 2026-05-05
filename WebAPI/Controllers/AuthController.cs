@@ -12,16 +12,13 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IConfiguration _config;
-    private readonly IWebHostEnvironment _environment;
 
     public AuthController(
         IAuthService authService,
-        IConfiguration config,
-        IWebHostEnvironment environment)
+        IConfiguration config)
     {
         _authService = authService;
         _config = config;
-        _environment = environment;
     }
 
     [HttpPost("register")]
@@ -53,7 +50,7 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("google_oauth_state", state, new CookieOptions
         {
             HttpOnly = true,
-            Secure = !_environment.IsDevelopment(),
+            Secure = ShouldUseSecureCookies(),
             SameSite = SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddMinutes(5),
             IsEssential = true
@@ -102,9 +99,9 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<UserSummaryDto>> Me(CancellationToken cancellationToken)
     {
         var userId = User.GetCurrentUserId();
-        Console.WriteLine($"=== UserId from token: {userId} ==="); 
+        Console.WriteLine($"=== UserId from token: {userId} ===");
 
-        var user = await _authService.GetCurrentUserAsync(userId, cancellationToken);
+        var user = await _authService.GetUserById(userId, cancellationToken);
 
         if (user is null)
         {
@@ -112,6 +109,39 @@ public class AuthController : ControllerBase
         }
 
         return Ok(user);
+    }
+
+    [HttpGet("profile/{userId:guid}")]
+    public async Task<ActionResult<UserSummaryDto>> GetUserProfile(Guid userId, CancellationToken ct)
+    {
+        var user = await _authService.GetUserById(userId, ct);
+        if (user is null)
+        {
+            return NotFound(new { message = "User not found." });
+        }
+        return Ok(user);
+    }
+
+    [HttpPut("me/profile")]
+    [Authorize]
+    public async Task<ActionResult<UserSummaryDto>> UpdateProfile(
+        [FromBody] UpdateProfileRequest request,
+        CancellationToken ct)
+    {
+        var userId = User.GetCurrentUserId();
+        var result = await _authService.UpdateProfileAsync(userId, request, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("search")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<UserSummaryDto>>> SearchByUsername(
+        [FromQuery] string username,
+        [FromQuery] int take = 20,
+        CancellationToken ct = default)
+    {
+        var users = await _authService.SearchUsersByUsernameAsync(username, take, ct);
+        return Ok(users);
     }
 
     [HttpPost("logout")]
@@ -123,7 +153,7 @@ public class AuthController : ControllerBase
         var expiredOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = !_environment.IsDevelopment(),
+            Secure = ShouldUseSecureCookies(),
             SameSite = SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddDays(-1), // quá khứ → browser xoá ngay
             IsEssential = true
@@ -140,10 +170,15 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("token", token, new CookieOptions
         {
             HttpOnly = true,
-            Secure = !_environment.IsDevelopment(),
+            Secure = ShouldUseSecureCookies(),
             SameSite = SameSiteMode.Lax,
             Expires = new DateTimeOffset(expiresAtUtc),
             IsEssential = true
         });
+    }
+
+    private bool ShouldUseSecureCookies()
+    {
+        return !HttpContext.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase);
     }
 }

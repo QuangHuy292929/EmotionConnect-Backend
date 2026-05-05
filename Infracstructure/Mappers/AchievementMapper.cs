@@ -15,6 +15,7 @@ namespace Infracstructure.Mappers
                 Id = achievement.Id,
                 Code = achievement.Code,
                 Description = achievement.Description,
+                Category = achievement.Category.ToString(),
                 IconUrl = achievement.IconUrl,
                 TargetValue = achievement.TargetValue,
                 IsActive = achievement.IsActive,

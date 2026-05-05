@@ -9,6 +9,8 @@ public class Room : BaseEntity
     public RoomStatus Status { get; set; } = RoomStatus.Waiting;
     public int MaxMembers { get; set; } = 5;
     public int MinMembers { get; set; } = 2;
+    public Guid? UserLowId { get; set; }
+    public Guid? UserHighId { get; set; }
     public DateTime ReadyAt { get; set; }
     public Guid CreatedById { get; set; }
     public DateTime? ClosedAt { get; set; }

@@ -65,7 +65,7 @@ public class AchievementController : ControllerBase
     }
 
     [HttpPost("me/code/{code}/increment")]
-    public async Task<ActionResult<UserAchievementDto>> IncrementProgress(string code, int amount, CancellationToken ct)
+    public async Task<ActionResult<AchievementProgressUpdateDto>> IncrementProgress(string code, int amount, CancellationToken ct)
     {
         var userId = User.GetCurrentUserId();
         var achievement = await _achievementService.IncrementProgressAsync(userId, code, amount, ct);
@@ -73,7 +73,7 @@ public class AchievementController : ControllerBase
     }
 
     [HttpPost("me/code/{code}/set-progress")]
-    public async Task<ActionResult<UserAchievementDto>> SetProgress(string code, int progressValue, CancellationToken ct)
+    public async Task<ActionResult<AchievementProgressUpdateDto>> SetProgress(string code, int progressValue, CancellationToken ct)
     {
         var userId = User.GetCurrentUserId();
         var achievement = await _achievementService.SetProgressAsync(userId, code, progressValue, ct);
@@ -87,4 +87,4 @@ public class AchievementController : ControllerBase
         var achievement = await _achievementService.UnlockAsync(userId, code, ct);
         return Ok(achievement);
     }
-}
+}   

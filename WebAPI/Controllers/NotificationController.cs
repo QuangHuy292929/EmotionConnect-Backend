@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.Notification;
 using Application.Interfaces.IServices;
 using Infracstructure.Extensions;
+using MediatR.NotificationPublishers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +33,14 @@ public class NotificationController : ControllerBase
         return Ok(createdNotifications);
     }
 
+    [HttpGet("me")]
+    public async Task<ActionResult<IEnumerable<NotificationDto>>> GetMyNotifications(int skip = 0, int take = 20, CancellationToken ct = default)
+    {
+        var userId = User.GetCurrentUserId();
+        var notifications = await _notificationService.GetMyNotificationsAsync(userId, skip, take, ct);
+        return Ok(notifications);
+    }
+
     [HttpGet("{notificationId:guid}")]
     public async Task<ActionResult<NotificationDto>> GetNotificationById(Guid notificationId, CancellationToken ct)
     {
@@ -43,6 +52,15 @@ public class NotificationController : ControllerBase
         }
         return Ok(notification);
     }
+
+    [HttpGet("me/notification-type")]
+    public async Task<ActionResult<IEnumerable<NotificationDto>>> GetMyNotificationsByType(string type, int skip = 0, int take = 20, CancellationToken ct = default)
+    {
+        var userId = User.GetCurrentUserId();
+        var notifications = await _notificationService.GetByTypeAsync(userId, type, skip, take, ct);
+        return Ok(notifications);
+    }
+
 
     [HttpGet("unread-count")]
     public async Task<ActionResult<int>> GetUnreadCount(CancellationToken ct)

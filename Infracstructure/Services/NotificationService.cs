@@ -4,6 +4,7 @@ using Application.Interfaces;
 using Application.Interfaces.Common;
 using Application.Interfaces.IServices;
 using Domain.Entities;
+using Domain.Enums;
 using Infracstructure.Mappers;
 
 namespace Infracstructure.Services;
@@ -190,6 +191,29 @@ public class NotificationService : INotificationService
         await _unitOfWork.SaveChangeAsync(cancellationToken);
         await _notificationRealtimePublisher.PublishMarkedAllAsReadAsync(currentUserId, unreadNotifications.Count, cancellationToken);
         return unreadNotifications.Count;
+    }
+
+    public async Task<List<NotificationDto>> GetByTypeAsync(Guid currentUserId, string type, int skip = 0, int take = 20, CancellationToken cancellationToken = default)
+    {
+        await EnsureUserExistsAsync(currentUserId, cancellationToken);
+        if (string.IsNullOrWhiteSpace(type))
+        {
+            throw new BadRequestException("Notification type cannot be null or empty.");
+        }
+
+        if(!Enum.TryParse<NotificationType>(type, true, out var notificationType))
+        {
+            throw new BadRequestException("Invalid notification type.");
+        }
+
+        var notifications = await _unitOfWork.NotificationRepository.GetByTypeAsync(
+            currentUserId,
+            notificationType,
+            skip,
+            take,
+            cancellationToken);
+
+        return notifications.ToDtoList();
     }
 
     private async Task EnsureUserExistsAsync(Guid userId, CancellationToken cancellationToken)

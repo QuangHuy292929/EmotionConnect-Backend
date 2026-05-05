@@ -15,7 +15,9 @@ namespace Infracstructure.Mappers
                 Id = user.Id,
                 Username = user.Username,
                 Email = user.Email,
-                DisplayName = user.DisplayName
+                DisplayName = user.DisplayName,
+                AvatarUrl = user.AvatarUrl,
+                Bio = user.Bio
             };
         }
     }

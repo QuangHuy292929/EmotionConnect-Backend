@@ -487,3 +487,6 @@ appsettings.Production.json
 *.env
 
 .dotnet/.dotnet/TelemetryStorageService/
+
+wwwroot/uploads/*
+!wwwroot/uploads/.gitkeep

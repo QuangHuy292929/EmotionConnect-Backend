@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.Enums;
 
 namespace Application.Interfaces.IRepositories;
 
@@ -8,6 +9,7 @@ public interface INotificationRepository
     Task AddRangeAsync(IEnumerable<Notification> notifications, CancellationToken cancellationToken = default);
     Task<Notification?> GetByIdAsync(Guid notificationId, CancellationToken cancellationToken = default);
     Task<List<Notification>> GetByUserIdAsync(Guid userId, int skip, int take, CancellationToken cancellationToken = default);
+    Task<List<Notification>> GetByTypeAsync(Guid userId, NotificationType type, int skip, int take, CancellationToken cancellationToken = default);
     Task<List<Notification>> GetUnreadByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<int> GetUnreadCountAsync(Guid userId, CancellationToken cancellationToken = default);
 }

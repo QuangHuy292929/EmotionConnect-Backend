@@ -3,6 +3,7 @@ using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.IServices;
 using Domain.Entities;
+using Infracstructure.Mappers;
 using Infracstructure.Security;
 using Infracstructure.Services;
 using Microsoft.AspNetCore.Identity;
@@ -85,9 +86,74 @@ public class AuthService : IAuthService
         return BuildAuthResponse(user);
     }
 
-    public async Task<UserSummaryDto?> GetCurrentUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<UserSummaryDto?> GetUserById(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _unitOfWork.AuthRepository.GetCurrentUserAsync(userId, cancellationToken);
+        var user = await _unitOfWork.AuthRepository.GetByIdAsync(userId, cancellationToken);
+        if (user is null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+        return user.ToSummaryDto();
+    }
+
+    public async Task<UserSummaryDto> UpdateProfileAsync(
+        Guid userId,
+        UpdateProfileRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId == Guid.Empty)
+        {
+            throw new BadRequestException("User ID cannot be empty.");
+        }
+
+        ArgumentNullException.ThrowIfNull(request);
+
+        var user = await _unitOfWork.AuthRepository.GetByIdAsync(userId, cancellationToken);
+        if (user is null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.DisplayName))
+        {
+            user.DisplayName = request.DisplayName.Trim();
+        }
+
+        if (request.Bio is not null)
+        {
+            user.Bio = string.IsNullOrWhiteSpace(request.Bio) ? null : request.Bio.Trim();
+        }
+
+        if (request.AvatarUrl is not null)
+        {
+            user.AvatarUrl = string.IsNullOrWhiteSpace(request.AvatarUrl) ? null : request.AvatarUrl.Trim();
+        }
+
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _unitOfWork.AuthRepository.UpdateAsync(user, cancellationToken);
+        await _unitOfWork.SaveChangeAsync(cancellationToken);
+
+        return user.ToSummaryDto();
+    }
+
+    public async Task<List<UserSummaryDto>> SearchUsersByUsernameAsync(
+        string username,
+        int take = 20,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            throw new BadRequestException("Username search term cannot be empty.");
+        }
+
+        if (take <= 0)
+        {
+            throw new BadRequestException("Take must be greater than zero.");
+        }
+
+        var users = await _unitOfWork.AuthRepository.SearchByUsernameAsync(username, take, cancellationToken);
+        return users.Select(x => x.ToSummaryDto()).ToList();
     }
 
     private AuthResponse BuildAuthResponse(User user)

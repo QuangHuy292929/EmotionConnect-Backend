@@ -1,5 +1,6 @@
 using Application.Interfaces.IRepositories;
 using Domain.Entities;
+using Domain.Enums;
 using Infracstructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,5 +53,15 @@ public class NotificationRepository : INotificationRepository
     {
         return await _dbContext.Notifications
             .CountAsync(x => x.UserId == userId && !x.IsRead, cancellationToken);
+    }
+
+    public async Task<List<Notification>> GetByTypeAsync(Guid userId, NotificationType type, int skip, int take, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Notifications
+            .Where(x => x.UserId == userId && x.Type == type)
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
     }
 }

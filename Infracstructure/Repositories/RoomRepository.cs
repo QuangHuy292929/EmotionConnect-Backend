@@ -21,18 +21,29 @@ public class RoomRepository : IRoomRepository
             .Include(x => x.Members)
             .FirstOrDefaultAsync(x => x.Id == roomId, ct);
     }
-    // lay tat ca phong cua 1 user
-    public async Task<List<Room>> GetByUserIdAync(Guid userId, CancellationToken ct = default)
+
+    public async Task<List<Room>> GetByUserIdAync(Guid userId, RoomType? roomType = null, CancellationToken ct = default)
     {
-        return await _dbContext.RoomMembers
-            .Include(x => x.Room)
-                .ThenInclude(x => x!.Members)
-            .Where(x => x.UserId == userId)
-            .Select(x => x.Room)
-            .Distinct()
-            .OrderByDescending(x => x.CreatedAt)
+        var query = _dbContext.Rooms
+            .Include(x => x.Members)
+            .Where(x => x.Members.Any(m =>
+                m.UserId == userId &&
+                m.MemberState == RoomMemberState.Active));
+
+        if (roomType.HasValue)
+        {
+            query = query.Where(x => x.RoomType == roomType.Value);
+        }
+
+        return await query
+            .OrderByDescending(x => x.Messages
+                .Where(m => m.DeletedAt == null)
+                .Select(m => (DateTime?)m.CreatedAt)
+                .Max() ?? x.CreatedAt)
             .ToListAsync(ct);
     }
+
+
 
     public async Task<bool> IsUserInRoomAsync(Guid roomId, Guid userId, CancellationToken ct = default)
     {
@@ -89,4 +100,16 @@ public class RoomRepository : IRoomRepository
                      x.Members.Any(m => m.UserId == userId && m.MemberState == RoomMemberState.Active),
                 ct);
     }
+
+    public async Task<Room?> GetDirectRoomBetweenUsersAsync(Guid userAId, Guid userBId, CancellationToken ct = default)
+    {
+        var lowId = userAId.CompareTo(userBId) <= 0 ? userAId : userBId;
+        var highId = userAId.CompareTo(userBId) <= 0 ? userBId : userAId;
+
+        return await _dbContext.Rooms
+                        .Include(x => x.Members)
+                        .FirstOrDefaultAsync(x => x.RoomType == RoomType.Direct && x.UserLowId == lowId && x.UserHighId == highId, ct);
+    }
+
 }
+
