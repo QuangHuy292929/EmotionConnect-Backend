@@ -133,12 +133,25 @@ namespace Infracstructure.Services
                 throw new ConflictException($"MessageType '{request.MessageType}' is invalid. {nameof(request.MessageType)}");
             }
 
+            if (messageType == MessageType.Text && string.IsNullOrWhiteSpace(request.Content))
+            {
+                throw new BadRequestException("Content cannot be empty for text messages");
+            }
+
+            if ((messageType == MessageType.Image || messageType == MessageType.File) && string.IsNullOrWhiteSpace(request.FileUrl))
+            {
+                throw new BadRequestException("FileUrl is required for file messages");
+            }
+
             var message = new Message
             {
                 RoomId = request.RoomId,
                 SenderId = senderId,
                 Content = request.Content,
-                MessageType = messageType
+                MessageType = messageType,
+                FileUrl = request.FileUrl,
+                FileName = request.FileName,
+                FileSize = request.FileSize
             };
 
             await _unitOfWork.MessageRepository.AddAsync(message, cancellationToken);

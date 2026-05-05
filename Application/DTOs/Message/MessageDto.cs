@@ -8,6 +8,11 @@ public class MessageDto
     public string? SenderUsername { get; set; }
     public string MessageType { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
+
+    public string? FileUrl { get; set; }
+    public string? FileName { get; set; }
+    public long? FileSize { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime? EditedAt { get; set; }
     public DateTime? DeletedAt { get; set; }

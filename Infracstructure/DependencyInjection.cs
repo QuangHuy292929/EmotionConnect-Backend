@@ -65,7 +65,7 @@ public static class DependencyInjection
 
         services.AddScoped<PasswordHasher<Domain.Entities.User>>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-
+        // Repositories
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddScoped<IRoomRepository, RoomRepository>();
         services.AddScoped<IMatchingRepository, MatchingRepository>();
@@ -78,9 +78,12 @@ public static class DependencyInjection
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IUserAchievementRepository, UserAchievementRepository>();
         services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
+        services.AddScoped<IUploadRepository, UploadRepository>();
+
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+        // Services
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IRoomService, RoomService>();
         services.AddScoped<IMatchingService, MatchingService>();
@@ -93,6 +96,8 @@ public static class DependencyInjection
         services.AddScoped<IAchievementService, AchievementService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IOutboxMessageService, OutboxMessageService>();
+        services.AddScoped<IUploadService, UploadService>();
+
 
         services.AddScoped<IOutBoxProcessor, OutboxProcessor>();
         services.AddHostedService<OutboxProcessorBackgroundService>();

@@ -14,5 +14,7 @@ namespace Application.Interfaces.IServices
         Task<MessageDto> EditAsync(Guid messageId, EditMessageRequest request, Guid userId, CancellationToken cancellationToken = default);
         Task DeleteAsync(Guid messageId, Guid userId, CancellationToken cancellationToken = default);
 
+
+
     }
 }
