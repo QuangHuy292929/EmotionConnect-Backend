@@ -1,4 +1,4 @@
-using Application.DTOs.Auth;
+﻿using Application.DTOs.Auth;
 using Application.Interfaces.IServices;
 using Infracstructure.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -118,8 +118,20 @@ public class AuthController : ControllerBase
     [Authorize]
     public IActionResult Logout()
     {
-        Response.Cookies.Delete("token");
-        Response.Cookies.Delete("google_oauth_state");
+        // Phải set đúng các options như lúc tạo cookie thì browser mới xoá được.
+        // Chỉ gọi Delete() không đủ — browser bỏ qua nếu Path/SameSite không khớp.
+        var expiredOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !_environment.IsDevelopment(),
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(-1), // quá khứ → browser xoá ngay
+            IsEssential = true
+        };
+
+        Response.Cookies.Append("token", string.Empty, expiredOptions);
+        Response.Cookies.Append("google_oauth_state", string.Empty, expiredOptions);
+
         return Ok(new { message = "Logged out" });
     }
 

@@ -21,7 +21,7 @@ public class RoomRepository : IRoomRepository
             .Include(x => x.Members)
             .FirstOrDefaultAsync(x => x.Id == roomId, ct);
     }
-
+    // lay tat ca phong cua 1 user
     public async Task<List<Room>> GetByUserIdAync(Guid userId, CancellationToken ct = default)
     {
         return await _dbContext.RoomMembers

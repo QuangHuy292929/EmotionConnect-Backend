@@ -6,5 +6,7 @@ public enum MessageType
     System = 2,
     Emotion = 3,
     Reflection = 4,
-    AiAssistant = 5
+    AiAssistant = 5,
+    Image = 6,
+    File = 7
 }

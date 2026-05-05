@@ -17,16 +17,17 @@ builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5174") // frontend
+            policy.WithOrigins("http://localhost:5174")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials(); // QUAN TRỌNG
+                  .AllowCredentials();
         });
 });
 
@@ -61,7 +62,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 var path = context.HttpContext.Request.Path;
                 var accessToken = context.Request.Query["access_token"];
-                if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/hubs/presence") || path.StartsWithSegments("/hubs/chat")))
+                if (!string.IsNullOrEmpty(accessToken) 
+                    && (path.StartsWithSegments("/hubs/presence") 
+                    || path.StartsWithSegments("/hubs/chat") 
+                    || path.StartsWithSegments("/hubs/notifications")))
                 {
                     context.Token = accessToken;
                     return Task.CompletedTask;
@@ -69,7 +73,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 var cookieToken = context.Request.Cookies["token"];
 
-                // THÊM LOG NÀY
                 Console.WriteLine($"=== Cookie token: {cookieToken?[..20] ?? "NULL"} ===");
                 Console.WriteLine($"=== All cookies: {string.Join(", ", context.Request.Cookies.Keys)} ===");
                
@@ -96,6 +99,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<Application.Interfaces.Common.INotificationRealtimePublisher, NotificationRealtimePublisher>();
 
 var app = builder.Build();
 
@@ -111,13 +115,15 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
-app.UseAuthorization();                          // ← Lên trước middleware custom
-app.UseMiddleware<ExceptionHandlingMiddleware>(); // ← Exception bắt toàn bộ
-app.UseMiddleware<UserActivityMiddleware>();      // ← Sau khi đã có User
+app.UseAuthorization();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<UserActivityMiddleware>();
 app.MapHub<PresenceHub>("/hubs/presence");
 app.MapHub<ChatHub>("/hubs/chat");
+app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapControllers();
 
 app.Run();

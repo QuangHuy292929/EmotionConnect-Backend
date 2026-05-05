@@ -15,5 +15,10 @@ namespace Application.Interfaces.IRepositories
         Task<List<Message>> SearchByRoomIdAsync(Guid roomId, string keyword, int skip, int take, CancellationToken cancellationToken = default);
         Task<int> CountSearchByRoomIdAsync(Guid roomId, string keyword, CancellationToken cancellationToken = default);
         Task<List<Message>> GetRecentByRoomIdAsync(Guid roomId, int take, CancellationToken cancellationToken = default);
+
+    
+
+
+
     }
 }

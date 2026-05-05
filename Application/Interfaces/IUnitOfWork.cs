@@ -14,6 +14,11 @@ namespace Application.Interfaces
         IReflectionRepository ReflectionRepository { get; }
         IEmotionRepository EmotionRepository { get; }
         ICheckInSessionRepository CheckInSessionRepository { get; }
+        IFriendshipRepository FriendshipRepository { get; }
+        INotificationRepository NotificationRepository { get; }
+        IAchievementRepository AchievementRepository { get; }
+        IUserAchievementRepository UserAchievementRepository { get; }
+        IOutboxMessageRepository OutboxMessageRepository { get; }
 
         Task<int> SaveChangeAsync(CancellationToken ct = default);
         Task BeginTransactionAsync();

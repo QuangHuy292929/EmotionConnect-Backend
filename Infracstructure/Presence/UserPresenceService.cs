@@ -1,4 +1,4 @@
-using Application.Interfaces.Common;
+﻿using Application.Interfaces.Common;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
@@ -118,5 +118,35 @@ public class UserPresenceService : IUserPresenceService
         {
             throw new ArgumentException("ConnectionId is required.", nameof(connectionId));
         }
+    }
+
+
+
+    public async Task<IEnumerable<string>> GetOnlineUserIdsAsync(CancellationToken cancellationToken = default)
+    {
+        var server = _database.Multiplexer.GetServer(
+            _database.Multiplexer.GetEndPoints().First()
+        );
+
+        var pattern = $"{_options.KeyPrefix}:user:*:connections";
+        var onlineUserIds = new List<string>();
+
+        await foreach (var key in server.KeysAsync(pattern: pattern))
+        {
+            // ✅ Double-check set thực sự có connection, không phải orphan key
+            var memberCount = await _database.SetLengthAsync(key);
+            if (memberCount <= 0) continue;
+
+            var keyStr = key.ToString();
+            var prefixSegment = $"{_options.KeyPrefix}:user:";
+            var suffix = ":connections";
+            var start = prefixSegment.Length;
+            var end = keyStr.LastIndexOf(suffix, StringComparison.Ordinal);
+
+            if (end > start)
+                onlineUserIds.Add(keyStr[start..end]);
+        }
+
+        return onlineUserIds;
     }
 }

@@ -18,7 +18,12 @@ public class UnitOfWork : IUnitOfWork
         IMessageRepository messageRepository,
         IReflectionRepository reflectionRepository,
         IEmotionRepository emotionRepository,
-        ICheckInSessionRepository checkInSessionRepository
+        ICheckInSessionRepository checkInSessionRepository,
+        IFriendshipRepository friendshipRepository,
+        INotificationRepository notificationRepository,
+        IAchievementRepository achievementRepository,
+        IUserAchievementRepository userAchievementRepository,
+        IOutboxMessageRepository outboxMessageRepository
         )
     {
         _dbContext = dbContext;
@@ -29,6 +34,11 @@ public class UnitOfWork : IUnitOfWork
         ReflectionRepository = reflectionRepository;
         EmotionRepository = emotionRepository;
         CheckInSessionRepository = checkInSessionRepository;
+        FriendshipRepository = friendshipRepository;
+        NotificationRepository = notificationRepository;
+        AchievementRepository = achievementRepository;
+        UserAchievementRepository = userAchievementRepository;
+        OutboxMessageRepository = outboxMessageRepository;
     }
 
     public IAuthRepository AuthRepository { get; }
@@ -38,6 +48,11 @@ public class UnitOfWork : IUnitOfWork
     public IReflectionRepository ReflectionRepository { get; }
     public IEmotionRepository EmotionRepository { get; }
     public ICheckInSessionRepository CheckInSessionRepository { get; }
+    public IFriendshipRepository FriendshipRepository { get; }
+    public INotificationRepository NotificationRepository { get; }
+    public IAchievementRepository AchievementRepository { get; }
+    public IUserAchievementRepository UserAchievementRepository { get; }
+    public IOutboxMessageRepository OutboxMessageRepository { get; }
 
     public Task<int> SaveChangeAsync(CancellationToken ct = default)
     {

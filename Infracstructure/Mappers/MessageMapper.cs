@@ -15,6 +15,9 @@ public static class MessageMapper
             SenderUsername = message.Sender?.Username,
             MessageType = message.MessageType.ToString(),
             Content = message.Content,
+            FileUrl = message.FileUrl,
+            FileName = message.FileName,
+            FileSize = message.FileSize,
             CreatedAt = message.CreatedAt,
             EditedAt = message.EditedAt,
             DeletedAt = message.DeletedAt
